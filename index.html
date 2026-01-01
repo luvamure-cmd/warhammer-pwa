@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Simulateur Warhammer</title>
+<style>
+  body { font-family: Arial; background:#111; color:#eee; padding:15px }
+  input, select, button {
+    width:100%; padding:10px; margin:5px 0; font-size:16px
+  }
+  button { background:#444; color:white; border:none; border-radius:5px }
+  .box { border:1px solid #333; padding:10px; margin-top:10px }
+</style>
+</head>
+<body>
+
+<h2>⚔️ Simulateur Warhammer</h2>
+
+<div class="box">
+  <h3>➕ Ajouter une unité</h3>
+  <input id="nom" placeholder="Nom de l'unité">
+  <input id="pv" type="number" placeholder="PV">
+  <input id="save" type="number" placeholder="Sauvegarde (ex: 3)">
+  <input id="cac" type="number" placeholder="Touche CAC">
+  <input id="dist" type="number" placeholder="Touche Distance">
+  <input id="degMin" type="number" placeholder="Dégâts min">
+  <input id="degMax" type="number" placeholder="Dégâts max">
+  <button onclick="ajouterUnite()">Ajouter l'unité</button>
+</div>
+
+<div class="box">
+  <h3>⚔️ Combat</h3>
+  <select id="attaquant"></select>
+  <select id="defenseur"></select>
+  <input id="attaques" type="number" placeholder="Nombre d'attaques">
+  <button onclick="attaquer('cac')">Attaque CAC</button>
+  <button onclick="attaquer('dist')">Attaque Distance</button>
+  <button onclick="resetCombat()">Reset combat</button>
+</div>
+
+<div class="box">
+  <h3>📊 Résultat</h3>
+  <p id="resultat">Aucune action</p>
+</div>
+
+<script>
+let unites = [];
+
+/* ---------- UTILITAIRES ---------- */
+function d6() {
+  return Math.floor(Math.random()*6)+1;
+}
+
+function degatsAleatoires(min, max) {
+  if (min === max) return min;
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+/* ---------- SAUVEGARDE LOCALE ---------- */
+function sauvegarder() {
+  localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
+}
+
+function charger() {
+  let data = localStorage.getItem("unitesWarhammer");
+  if (data) {
+    unites = JSON.parse(data);
+    mettreAJourSelects();
+    afficher("Unités chargées");
+  }
+}
+
+/* ---------- UNITÉS ---------- */
+function ajouterUnite() {
+  let unite = {
+    nom: nom.value,
+    pvMax: parseInt(pv.value),
+    pv: parseInt(pv.value),
+    save: parseInt(save.value),
+    cac: parseInt(cac.value),
+    dist: parseInt(dist.value),
+    degMin: parseInt(degMin.value),
+    degMax: parseInt(degMax.value)
+  };
+  unites.push(unite);
+  sauvegarder();
+  mettreAJourSelects();
+  afficher("Unité ajoutée : " + unite.nom);
+}
+
+function mettreAJourSelects() {
+  attaquant.innerHTML = "";
+  defenseur.innerHTML = "";
+  unites.forEach((u, i) => {
+    attaquant.innerHTML += `<option value="${i}">${u.nom}</option>`;
+    defenseur.innerHTML += `<option value="${i}">${u.nom}</option>`;
+  });
+}
+
+/* ---------- COMBAT ---------- */
+function attaquer(type) {
+  let a = unites[attaquant.value];
+  let d = unites[defenseur.value];
+  if (!a || !d || d.pv <= 0) return;
+
+  let nb = parseInt(attaques.value);
+  let touche = type === "cac" ? a.cac : a.dist;
+  let pertes = 0;
+
+  for (let i=0;i<nb;i++) {
+    if (d6() >= touche) {
+      if (d6() < d.save) {
+        let deg = degatsAleatoires(a.degMin, a.degMax);
+        d.pv -= deg;
+        pertes += deg;
+      }
+    }
+  }
+
+  if (d.pv < 0) d.pv = 0;
+  sauvegarder();
+  afficher(`${a.nom} inflige ${pertes} dégâts à ${d.nom} — PV restants : ${d.pv}`);
+}
+
+function resetCombat() {
+  unites.forEach(u => u.pv = u.pvMax);
+  sauvegarder();
+  afficher("Combat réinitialisé");
+}
+
+/* ---------- UI ---------- */
+function afficher(txt) {
+  resultat.innerText = txt;
+}
+
+/* ---------- AU CHARGEMENT ---------- */
+charger();
+</script>
+
+</body>
+</html>
