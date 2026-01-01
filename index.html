@@ -35,13 +35,21 @@
 
 <div class="box">
   <h3>⚔️ Combat</h3>
+
+  <div style="display:flex; justify-content:space-between; gap:10px">
+    <div id="zoneAttaquant"></div>
+    <div id="zoneDefenseur"></div>
+  </div>
+
   <select id="attaquant"></select>
   <select id="defenseur"></select>
   <input id="attaques" type="number" placeholder="Nombre d'attaques">
+
   <button onclick="attaquer('cac')">Attaque CAC</button>
   <button onclick="attaquer('dist')">Attaque Distance</button>
   <button onclick="resetCombat()">Reset combat</button>
 </div>
+
 
 <div class="box">
   <h3>📊 Résultat</h3>
@@ -145,4 +153,5 @@ charger();
 </body>
 
 </html>
+
 
