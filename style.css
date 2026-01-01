@@ -1,0 +1,39 @@
+body {
+  font-family: Arial;
+  background: #111;
+  color: #eee;
+  padding: 15px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  font-size: 16px;
+}
+
+button {
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.box {
+  border: 1px solid #333;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.unite {
+  text-align: center;
+}
+
+.unite img {
+  width: 120px;
+  border-radius: 10px;
+}
+
+.pv {
+  font-weight: bold;
+}
