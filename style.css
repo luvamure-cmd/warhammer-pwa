@@ -101,3 +101,13 @@ button {
 .choix-combat > div {
   flex: 1;
 }
+
+.section-contenu {
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  max-height: 2000px; /* grand nombre pour qu’elle soit ouverte par défaut */
+}
+
+.section-contenu.collapse {
+  max-height: 0;
+}
