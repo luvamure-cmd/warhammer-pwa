@@ -112,6 +112,7 @@ function attaquer(type) {
         pertes += deg;
       }
     }
+  afficherCombat();
   }
 
   if (d.pv < 0) d.pv = 0;
@@ -152,6 +153,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
