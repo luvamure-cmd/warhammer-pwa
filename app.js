@@ -61,6 +61,7 @@ function mettreAJourSelects() {
   if (selD !== "" && unites[selD]) defenseur.value = selD;
 }
 
+/* ========= CHARGEMENT ========= */
 function charger() {
   const data = localStorage.getItem("unitesWarhammer");
   if (!data) return;
@@ -72,8 +73,8 @@ function charger() {
       image: u.image || "",
       pvMax: Number(u.pvMax) || 10,
       pv: (u.pv !== undefined && u.pv !== null)
-      ? Number(u.pv)
-      : (Number(u.pvMax) || 10),
+        ? Number(u.pv)
+        : (Number(u.pvMax) || 10),
       save: Number(u.save) || 4,
       cac: Number(u.cac) || 4,
       dist: Number(u.dist) || 4,
@@ -84,7 +85,7 @@ function charger() {
     localStorage.removeItem("unitesWarhammer");
   }
 
-  mettreAJourSelects();
+  if (typeof mettreAJourSelects === "function") mettreAJourSelects();
   afficherUnites();
 }
 
@@ -128,7 +129,7 @@ function ajouterUnite() {
   }
 
   sauvegarder();
-  mettreAJourSelects();
+  if (typeof mettreAJourSelects === "function") mettreAJourSelects();
   rafraichirCombatEtListe();
 }
 
@@ -142,7 +143,7 @@ function supprimerUnite() {
   uniteEnEdition = null;
 
   sauvegarder();
-  mettreAJourSelects();
+  if (typeof mettreAJourSelects === "function") mettreAJourSelects();
   rafraichirCombatEtListe();
   afficher("Unité supprimée");
 }
@@ -160,9 +161,6 @@ function chargerUnite(i) {
   degMin.value = u.degMin;
   degMax.value = u.degMax;
 }
-
-
-
 
 /* ========= LISTE UNITÉS ========= */
 function afficherUnites() {
@@ -243,5 +241,3 @@ function renderCombatUnite(u) {
 
 /* ========= INIT ========= */
 charger();
-
-
