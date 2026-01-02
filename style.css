@@ -88,3 +88,19 @@ button {
   margin-top: 4px;
   font-size: 14px;
 }
+
+.combat-ligne {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.resultat-combat {
+  text-align: center;
+  margin: 10px 0 15px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #ddd;
+}
+
