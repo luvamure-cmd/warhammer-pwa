@@ -7,10 +7,10 @@ const cac = document.getElementById("cac");
 const dist = document.getElementById("dist");
 const degMin = document.getElementById("degMin");
 const degMax = document.getElementById("degMax");
+const attaquesUnite = document.getElementById("attaquesUnite");
 
 const attaquant = document.getElementById("attaquant");
 const defenseur = document.getElementById("defenseur");
-const attaques = document.getElementById("attaques");
 
 const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
@@ -241,3 +241,4 @@ function renderCombatUnite(u) {
 
 /* ========= INIT ========= */
 charger();
+
