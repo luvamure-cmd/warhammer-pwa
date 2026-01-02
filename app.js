@@ -17,8 +17,8 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
-const toggleFormBtn = document.getElementById("toggleForm");
-const formBox = document.querySelector(".box");
+const contenuAjout = document.getElementById("contenuAjout");
+const flecheAjout = document.getElementById("flecheAjout");
 
 /* ========= ÉTAT ========= */
 let unites = [];
@@ -26,8 +26,7 @@ let uniteEnEdition = null;
 let indexAttaquant = null;
 let indexDefenseur = null;
 
-const IMAGE_DEFAUT =
-  "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
+const IMAGE_DEFAUT = "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
 /* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
@@ -35,6 +34,17 @@ const d6 = () => Math.floor(Math.random() * 6) + 1;
 /* ========= STORAGE ========= */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
+}
+
+/* ========= TOGGLE AJOUT ========= */
+function toggleAjout() {
+  if (contenuAjout.style.display === "none") {
+    contenuAjout.style.display = "block";
+    flecheAjout.textContent = "▼";
+  } else {
+    contenuAjout.style.display = "none";
+    flecheAjout.textContent = "►";
+  }
 }
 
 /* ========= BARRE PV ========= */
@@ -61,11 +71,8 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  if (uniteEnEdition !== null) {
-    unites[uniteEnEdition] = u;
-  } else {
-    unites.push(u);
-  }
+  if (uniteEnEdition !== null) unites[uniteEnEdition] = u;
+  else unites.push(u);
 
   uniteEnEdition = null;
   sauvegarder();
@@ -83,7 +90,6 @@ function supprimerUnite() {
 function chargerUnite(i) {
   const u = unites[i];
   uniteEnEdition = i;
-
   nom.value = u.nom;
   image.value = u.image;
   pv.value = u.pvMax;
@@ -123,8 +129,8 @@ function afficherChoixCombat() {
         ${renderBarrePV(u)}
       </div>
     `;
-    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i}; afficherCombat()">${carte}</div>`;
-    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i}; afficherCombat()">${carte}</div>`;
+    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
+    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
   });
 }
 
@@ -145,52 +151,47 @@ function renderCombat(u) {
   `;
 }
 
+/* ========= ATTAQUE ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
+
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
   let journal = "";
-  for (let i = 0; i < a.attaques; i++) {
+
+  for (let i = 1; i <= a.attaques; i++) {
     const jetTouche = d6();
-    let touche = false;
-    let sauvegarde = false;
-    let degats = 0;
+    const touche = (jetTouche > a[type]); // touche si jet > caractéristique
+    journal += `Attaque ${i} : jet de touche ${jetTouche} -> ${touche ? "Touchée" : "Ratée"}\n`;
 
-    if (jetTouche > (type === "cac" ? a.cac : a.dist)) {
-      touche = true;
+    if (touche) {
       const jetSave = d6();
-      if (jetSave <= d.save) {
-        sauvegarde = true;
-      } else {
-        degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-        d.pv -= degats;
+      const sauvegarde = jetSave > d.save; // réussit si > save
+      if (!sauvegarde) {
+        const deg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+        d.pv -= deg;
         d.pv = Math.max(0, d.pv);
+        journal += ` → Jet de sauvegarde ${jetSave} raté : ${d.nom} perd ${deg} PV\n`;
+      } else {
+        journal += ` → Jet de sauvegarde ${jetSave} réussi : ${d.nom} ne perd pas de PV\n`;
       }
-    }
-
-    journal += `Attaque ${i + 1} : `;
-    if (!touche) {
-      journal += `ratée (jet de touche ${jetTouche})\n`;
-    } else {
-      journal += `touchée (jet de touche ${jetTouche}), `;
-      journal += sauvegarde ? "sauvegarde réussie" : `sauvegarde ratée : ${degats} PV perdus`;
-      journal += "\n";
     }
   }
 
   sauvegarder();
   rafraichirTout();
-  resultat.innerText = journal;
-  resultat.scrollTop = resultat.scrollHeight; // défiler le journal si besoin
+
+  resultat.textContent = journal || "Aucune action";
+  resultat.scrollTop = resultat.scrollHeight;
 }
 
+/* ========= RESET COMBAT ========= */
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
-  resultat.innerText = "Combat réinitialisé";
 }
 
 /* ========= GLOBAL ========= */
