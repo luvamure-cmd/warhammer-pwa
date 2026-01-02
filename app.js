@@ -40,6 +40,11 @@ function ajouterUnite() {
   sauvegarder();
   mettreAJourSelects();
   afficher("Unité ajoutée : " + unite.nom);
+  if (uniteEnEdition !== null) {
+  unites[uniteEnEdition] = unite;
+  uniteEnEdition = null;
+} else {
+  unites.push(unite);
 }
 
 function mettreAJourSelects() {
@@ -62,6 +67,22 @@ function afficherUnites() {
       </div>
     `;
   });
+}
+
+let uniteEnEdition = null;
+
+function chargerUnite(index) {
+  let u = unites[index];
+  uniteEnEdition = index;
+
+  nom.value = u.nom;
+  image.value = u.image;
+  pv.value = u.pvMax;
+  save.value = u.save;
+  cac.value = u.precisionCAC;
+  dist.value = u.precisionDist;
+  degMin.value = u.degMin;
+  degMax.value = u.degMax;
 }
 
 
@@ -103,4 +124,5 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
