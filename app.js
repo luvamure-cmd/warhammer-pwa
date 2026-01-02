@@ -145,6 +145,32 @@ function afficherCombat() {
   `;
 }
 
+function supprimerUnite() {
+  if (uniteEnEdition === null) {
+    alert("Sélectionne une unité à supprimer");
+    return;
+  }
+
+  if (!confirm("Supprimer cette unité ?")) return;
+
+  unites.splice(uniteEnEdition, 1);
+  uniteEnEdition = null;
+
+  sauvegarder();
+  mettreAJourSelects();
+  afficherUnites();
+  afficher("Unité supprimée");
+
+  // vider le formulaire
+  nom.value = "";
+  image.value = "";
+  pv.value = "";
+  save.value = "";
+  cac.value = "";
+  dist.value = "";
+  degMin.value = "";
+  degMax.value = "";
+}
 
 
 /* ---------- UI ---------- */
@@ -156,6 +182,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
