@@ -108,6 +108,12 @@ button {
   max-height: 2000px; /* grand nombre pour qu’elle soit ouverte par défaut */
 }
 
-.section-contenu.collapse {
-  max-height: 0;
+.section-ajout.collapse {
+  display: none;
 }
+.toggle-section {
+  cursor: pointer;
+  user-select: none;
+}
+
+
