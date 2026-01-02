@@ -5,8 +5,11 @@
 <title>Simulateur Warhammer</title>
 
 <link rel="stylesheet" href="style.css">
+
+<!-- Manifest PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
+
 </head>
 
 <body>
@@ -60,5 +63,15 @@
 </div>
 
 <script src="app.js"></script>
+
+<script>
+// Forcer le navigateur à recharger le manifest (évite l'ancien cache)
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  });
+}
+</script>
+
 </body>
 </html>
