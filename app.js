@@ -30,6 +30,7 @@ function charger() {
 function ajouterUnite() {
   let unite = {
     nom: nom.value,
+    image: image.value,
     pvMax: parseInt(pv.value),
     pv: parseInt(pv.value),
     save: parseInt(save.value),
@@ -38,17 +39,21 @@ function ajouterUnite() {
     degMin: parseInt(degMin.value),
     degMax: parseInt(degMax.value)
   };
-  unites.push(unite);
+
+  if (uniteEnEdition !== null) {
+    unites[uniteEnEdition] = unite;
+    uniteEnEdition = null;
+    afficher("Unité modifiée : " + unite.nom);
+  } else {
+    unites.push(unite);
+    afficher("Unité ajoutée : " + unite.nom);
+  }
+
   sauvegarder();
   mettreAJourSelects();
   afficherUnites();
-  afficher("Unité ajoutée : " + unite.nom);
-  if (uniteEnEdition !== null) {
-  unites[uniteEnEdition] = unite;
-  uniteEnEdition = null;
-} else {
-  unites.push(unite);
 }
+
 
 function mettreAJourSelects() {
   attaquant.innerHTML = "";
@@ -69,8 +74,8 @@ function chargerUnite(index) {
   image.value = u.image;
   pv.value = u.pvMax;
   save.value = u.save;
-  cac.value = u.precisionCAC;
-  dist.value = u.precisionDist;
+  cac.value = u.cac;
+  dist.value = u.dist;
   degMin.value = u.degMin;
   degMax.value = u.degMax;
 }
@@ -120,6 +125,26 @@ function resetCombat() {
   afficher("Combat réinitialisé");
 }
 
+function afficherCombat() {
+  let a = unites[attaquant.value];
+  let d = unites[defenseur.value];
+
+  if (!a || !d) return;
+
+  zoneAttaquant.innerHTML = `
+    <img src="${a.image}">
+    <div>${a.nom}</div>
+    <div>PV : ${a.pv}</div>
+  `;
+
+  zoneDefenseur.innerHTML = `
+    <img src="${d.image}">
+    <div>${d.nom}</div>
+    <div>PV : ${d.pv}</div>
+  `;
+}
+
+
 /* ---------- UI ---------- */
 function afficher(txt) {
   resultat.innerText = txt;
@@ -127,6 +152,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
