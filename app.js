@@ -163,12 +163,12 @@ function attaquer(type) {
 
   for (let i = 1; i <= a.attaques; i++) {
     const jetTouche = d6();
-    const touche = (jetTouche > a[type]); // touche si jet > caractéristique
+    const touche = jetTouche >= a[type]; // touche si jet >= caractéristique de l'attaquant
     journal += `Attaque ${i} : jet de touche ${jetTouche} -> ${touche ? "Touchée" : "Ratée"}\n`;
 
     if (touche) {
       const jetSave = d6();
-      const sauvegarde = jetSave > d.save; // réussit si > save
+      const sauvegarde = jetSave >= d.save; // sauvegarde réussie si jet >= save du défenseur
       if (!sauvegarde) {
         const deg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= deg;
@@ -183,9 +183,10 @@ function attaquer(type) {
   sauvegarder();
   rafraichirTout();
 
-  resultat.textContent = journal || "Aucune action";
+  resultat.textContent = journal;
   resultat.scrollTop = resultat.scrollHeight;
 }
+
 
 /* ========= RESET COMBAT ========= */
 function resetCombat() {
@@ -205,3 +206,4 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
