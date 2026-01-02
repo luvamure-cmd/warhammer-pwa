@@ -85,14 +85,23 @@ function afficherUnites() {
   listeUnites.innerHTML = "";
 
   unites.forEach((u, i) => {
+    let pourcentage = Math.max(0, (u.pv / u.pvMax) * 100);
+
     listeUnites.innerHTML += `
       <div class="carte-unite" onclick="chargerUnite(${i})">
         <img src="${u.image}">
-        <div>${u.nom}</div>
+        <div class="nom-unite">${u.nom}</div>
+
+        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+
+        <div class="barre-vie">
+          <div class="barre-vie-interne" style="width:${pourcentage}%"></div>
+        </div>
       </div>
     `;
   });
 }
+
   
 /* ---------- COMBAT ---------- */
 function attaquer(type) {
@@ -182,6 +191,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
