@@ -134,16 +134,17 @@ function afficherCombat() {
 
   zoneAttaquant.innerHTML = `
     <img src="${a.image}">
-    <div>${a.nom}</div>
-    <div>PV : ${a.pv}</div>
+    <div><strong>${a.nom}</strong></div>
+    <div>PV : ${a.pv} / ${a.pvMax}</div>
   `;
 
   zoneDefenseur.innerHTML = `
     <img src="${d.image}">
-    <div>${d.nom}</div>
-    <div>PV : ${d.pv}</div>
+    <div><strong>${d.nom}</strong></div>
+    <div>PV : ${d.pv} / ${d.pvMax}</div>
   `;
 }
+
 
 
 /* ---------- UI ---------- */
@@ -153,6 +154,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
