@@ -115,7 +115,7 @@ function attaquer(type) {
   let touche = type === "cac" ? a.cac : a.dist;
   let pertes = 0;
 
-  for (let i=0;i<nb;i++) {
+  for (let i = 0; i < nb; i++) {
     if (d6() >= touche) {
       if (d6() < d.save) {
         let deg = degatsAleatoires(a.degMin, a.degMax);
@@ -123,19 +123,27 @@ function attaquer(type) {
         pertes += deg;
       }
     }
-  afficherCombat();
   }
 
   if (d.pv < 0) d.pv = 0;
+
   sauvegarder();
+
+  // ✅ RAFRAÎCHISSEMENT IMMÉDIAT DE L'UI
+  afficherCombat();
+  afficherUnites();
+
   afficher(`${a.nom} inflige ${pertes} dégâts à ${d.nom} — PV restants : ${d.pv}`);
 }
 
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
+  afficherCombat();
+  afficherUnites();
   afficher("Combat réinitialisé");
 }
+
 
 function afficherCombat() {
   let a = unites[attaquant.value];
@@ -193,6 +201,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
