@@ -7,13 +7,13 @@
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
-</head>
 
+</head>
 <body>
 
 <h2>⚔️ Simulateur Warhammer</h2>
 
-<!-- ===== AJOUT / MODIF UNITÉ ===== -->
+<!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
 <div class="box">
   <h3>➕ Ajouter / Modifier une unité</h3>
 
@@ -34,7 +34,7 @@
   <div id="listeUnites" class="liste-unites"></div>
 </div>
 
-<!-- ===== COMBAT ===== -->
+<!-- ================= COMBAT ================= -->
 <div class="box">
   <h3>⚔️ Combat</h3>
 
@@ -42,6 +42,8 @@
     <div id="zoneAttaquant" class="zone-combat"></div>
     <div id="zoneDefenseur" class="zone-combat"></div>
   </div>
+
+  <div id="resultat" class="resultat-combat">Aucune action</div>
 
   <div class="choix-combat">
     <div>
@@ -58,8 +60,6 @@
   <button onclick="attaquer('cac')">Attaque CAC</button>
   <button onclick="attaquer('dist')">Attaque Distance</button>
   <button onclick="resetCombat()">Reset combat</button>
-
-  <p id="resultat"></p>
 </div>
 
 <script src="app.js"></script>
