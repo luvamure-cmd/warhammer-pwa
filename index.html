@@ -33,12 +33,12 @@
 <div class="box">
   <h3>⚔️ Combat</h3>
 
-<div style="display:flex; justify-content:space-between; align-items:center; gap:10px">
-  <div id="zoneAttaquant" class="zone-combat"></div>
-  <div id="resultatCombat"></div>
-  <div id="zoneDefenseur" class="zone-combat"></div>
-</div>
+  <div class="combat-ligne">
+    <div id="zoneAttaquant" class="zone-combat"></div>
+    <div id="zoneDefenseur" class="zone-combat"></div>
+  </div>
 
+  <div id="resultatCombat" class="resultat-combat"></div>
 
   <select id="attaquant" onchange="afficherCombat()"></select>
   <select id="defenseur" onchange="afficherCombat()"></select>
@@ -48,6 +48,7 @@
   <button onclick="attaquer('dist')">Attaque Distance</button>
   <button onclick="resetCombat()">Reset combat</button>
 </div>
+
 
 
 <div class="box">
@@ -64,6 +65,7 @@
 </body>
 
 </html>
+
 
 
 
