@@ -5,19 +5,18 @@
 <title>Simulateur Warhammer</title>
 
 <link rel="stylesheet" href="style.css">
-
-<!-- Manifest PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
-
 </head>
 
 <body>
 
 <h2>⚔️ Simulateur Warhammer</h2>
 
+<!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
 <div class="box">
-  <h3>➕ Ajouter une unité</h3>
+  <h3>➕ Ajouter / Modifier une unité</h3>
+
   <input id="nom" placeholder="Nom de l'unité">
   <input id="pv" type="number" placeholder="PV">
   <input id="image" placeholder="URL de l'image">
@@ -28,12 +27,14 @@
   <input id="degMin" type="number" placeholder="Dégâts min">
   <input id="degMax" type="number" placeholder="Dégâts max">
 
-  <button type="button" onclick="ajouterUnite()">Ajouter l'unité</button>
-  <button type="button" onclick="supprimerUnite()" style="background:#a33">
-    Supprimer l'unité
-  </button>
+  <button onclick="ajouterUnite()">Ajouter / Modifier</button>
+  <button onclick="supprimerUnite()" style="background:#a33">Supprimer</button>
+
+  <h4>📦 Unités créées</h4>
+  <div id="listeUnites" class="liste-unites"></div>
 </div>
 
+<!-- ================= COMBAT ================= -->
 <div class="box">
   <h3>⚔️ Combat</h3>
 
@@ -44,35 +45,29 @@
 
   <div id="resultatCombat" class="resultat-combat"></div>
 
-  <select id="attaquant" onchange="afficherCombat()"></select>
-  <select id="defenseur" onchange="afficherCombat()"></select>
+  <div class="choix-combat">
+    <div>
+      <h4>🗡 Attaquant</h4>
+      <div id="listeAttaquants" class="liste-unites"></div>
+    </div>
 
-  <button type="button" onclick="attaquer('cac')">Attaque CAC</button>
-  <button type="button" onclick="attaquer('dist')">Attaque Distance</button>
-  <button type="button" onclick="resetCombat()">Reset combat</button>
+    <div>
+      <h4>🛡 Défenseur</h4>
+      <div id="listeDefenseurs" class="liste-unites"></div>
+    </div>
+  </div>
+
+  <button onclick="attaquer('cac')">Attaque CAC</button>
+  <button onclick="attaquer('dist')">Attaque Distance</button>
+  <button onclick="resetCombat()">Reset combat</button>
 </div>
 
+<!-- ================= RÉSULTAT ================= -->
 <div class="box">
   <h3>📊 Résultat</h3>
   <p id="resultat">Aucune action</p>
 </div>
 
-<div class="box">
-  <h3>📦 Unités créées</h3>
-  <div id="listeUnites" class="liste-unites"></div>
-</div>
-
 <script src="app.js"></script>
-
-<script>
-// Forcer le navigateur à recharger le manifest (évite l'ancien cache)
-if (navigator.serviceWorker) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-}
-</script>
-
 </body>
 </html>
-
