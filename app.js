@@ -1,4 +1,4 @@
-/* ========= RÉFÉRENCES DOM ========= */
+/* ========= DOM ========= */
 const nom = document.getElementById("nom");
 const pv = document.getElementById("pv");
 const image = document.getElementById("image");
@@ -9,34 +9,31 @@ const degMin = document.getElementById("degMin");
 const degMax = document.getElementById("degMax");
 const attaquesUnite = document.getElementById("attaquesUnite");
 
-const attaquantSelect = document.getElementById("attaquant");
-const defenseurSelect = document.getElementById("defenseur");
+const attaquant = document.getElementById("attaquant");
+const defenseur = document.getElementById("defenseur");
 
 const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
-
 const listeUnites = document.getElementById("listeUnites");
 const resultat = document.getElementById("resultat");
-const resultatCombat = document.getElementById("resultatCombat");
 
 /* ========= ÉTAT ========= */
 let unites = [];
 let uniteEnEdition = null;
 
-/* ========= UTILITAIRES ========= */
+/* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
-function degatsAleatoires(min, max) {
-  return min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
-}
+const IMAGE_DEFAUT =
+  "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
-/* ========= STOCKAGE ========= */
+/* ========= STORAGE ========= */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
 }
 
-/* ========= BARRE DE VIE ========= */
-function renderBarrePV(u) {
+/* ========= BARRE PV ========= */
+function barrePV(u) {
   const pct = Math.max(0, (u.pv / u.pvMax) * 100);
   const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
 
@@ -47,56 +44,31 @@ function renderBarrePV(u) {
   `;
 }
 
-/* ========= SELECTS ========= */
-function mettreAJourSelects() {
-  attaquantSelect.innerHTML = "";
-  defenseurSelect.innerHTML = "";
-
-  unites.forEach((u, i) => {
-    attaquantSelect.innerHTML += `<option value="${i}">${u.nom}</option>`;
-    defenseurSelect.innerHTML += `<option value="${i}">${u.nom}</option>`;
-  });
-}
-
-/* ========= CHARGEMENT ========= */
-function charger() {
-  const data = localStorage.getItem("unitesWarhammer");
-  if (!data) return;
-
-  unites = JSON.parse(data);
-  mettreAJourSelects();
-  afficherUnites();
-  afficherCombat();
-}
-
 /* ========= UNITÉS ========= */
 function ajouterUnite() {
   if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
   const u = {
     nom: nom.value,
-    image: image.value,
-    pvMax: parseInt(pv.value),
-    pv: parseInt(pv.value),
-    attaques: parseInt(attaquesUnite.value) || 1,
-    save: parseInt(save.value) || 4,
-    cac: parseInt(cac.value) || 4,
-    dist: parseInt(dist.value) || 4,
-    degMin: parseInt(degMin.value) || 1,
-    degMax: parseInt(degMax.value) || 1
+    image: image.value || IMAGE_DEFAUT,
+    pvMax: +pv.value,
+    pv: +pv.value,
+    attaques: +attaquesUnite.value || 1,
+    save: +save.value || 4,
+    cac: +cac.value || 4,
+    dist: +dist.value || 4,
+    degMin: +degMin.value || 1,
+    degMax: +degMax.value || 1
   };
 
-  if (uniteEnEdition !== null) {
-    unites[uniteEnEdition] = u;
-    uniteEnEdition = null;
-  } else {
-    unites.push(u);
-  }
+  uniteEnEdition !== null
+    ? (unites[uniteEnEdition] = u)
+    : unites.push(u);
 
+  uniteEnEdition = null;
   sauvegarder();
-  mettreAJourSelects();
   afficherUnites();
-  afficherCombat();
+  majSelects();
 }
 
 function chargerUnite(i) {
@@ -114,19 +86,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-function supprimerUnite() {
-  if (uniteEnEdition === null) return;
-
-  unites.splice(uniteEnEdition, 1);
-  uniteEnEdition = null;
-
-  sauvegarder();
-  mettreAJourSelects();
-  afficherUnites();
-  afficherCombat();
-}
-
-/* ========= AFFICHAGE UNITÉS ========= */
+/* ========= LISTE ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
 
@@ -136,45 +96,54 @@ function afficherUnites() {
         <img src="${u.image}">
         <div class="nom-unite">${u.nom}</div>
         <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-        ${renderBarrePV(u)}
+        ${barrePV(u)}
       </div>
     `;
   });
 }
 
 /* ========= COMBAT ========= */
-function afficherCombat() {
-  const a = unites[attaquantSelect.value];
-  const d = unites[defenseurSelect.value];
-  if (!a || !d) return;
-
-  zoneAttaquant.innerHTML = renderCombatUnite(a);
-  zoneDefenseur.innerHTML = renderCombatUnite(d);
+function majSelects() {
+  attaquant.innerHTML = defenseur.innerHTML = "";
+  unites.forEach((u, i) => {
+    attaquant.innerHTML += `<option value="${i}">${u.nom}</option>`;
+    defenseur.innerHTML += `<option value="${i}">${u.nom}</option>`;
+  });
+  afficherCombat();
 }
 
-function renderCombatUnite(u) {
+function afficherCombat() {
+  const a = unites[attaquant.value];
+  const d = unites[defenseur.value];
+  if (!a || !d) return;
+
+  zoneAttaquant.innerHTML = renderCombat(a);
+  zoneDefenseur.innerHTML = renderCombat(d);
+}
+
+function renderCombat(u) {
   return `
     <img src="${u.image}">
     <div><strong>${u.nom}</strong></div>
     <div>Attaques : ${u.attaques}</div>
     <div>${u.pv} / ${u.pvMax} PV</div>
-    ${renderBarrePV(u)}
+    ${barrePV(u)}
   `;
 }
 
 function attaquer(type) {
-  const a = unites[attaquantSelect.value];
-  const d = unites[defenseurSelect.value];
+  const a = unites[attaquant.value];
+  const d = unites[defenseur.value];
   if (!a || !d || d.pv <= 0) return;
 
-  let pertes = 0;
+  let degats = 0;
   const touche = type === "cac" ? a.cac : a.dist;
 
   for (let i = 0; i < a.attaques; i++) {
     if (d6() >= touche && d6() < d.save) {
-      const deg = degatsAleatoires(a.degMin, a.degMax);
-      d.pv -= deg;
-      pertes += deg;
+      const dgt = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+      d.pv -= dgt;
+      degats += dgt;
     }
   }
 
@@ -182,16 +151,11 @@ function attaquer(type) {
   sauvegarder();
   afficherUnites();
   afficherCombat();
-
-  resultat.innerText = `${a.nom} inflige ${pertes} dégâts à ${d.nom}`;
-}
-
-function resetCombat() {
-  unites.forEach(u => u.pv = u.pvMax);
-  sauvegarder();
-  afficherUnites();
-  afficherCombat();
+  resultat.innerText = `${a.nom} inflige ${degats} dégâts à ${d.nom}`;
 }
 
 /* ========= INIT ========= */
-charger();
+const data = localStorage.getItem("unitesWarhammer");
+if (data) unites = JSON.parse(data);
+majSelects();
+afficherUnites();
