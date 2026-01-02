@@ -86,6 +86,8 @@ function afficherUnites() {
 
   unites.forEach((u, i) => {
     let pourcentage = Math.max(0, (u.pv / u.pvMax) * 100);
+    let couleur = pourcentage > 50 ? "#3fa93f" : pourcentage > 25 ? "#e0b000" : "#c0392b";
+
 
     listeUnites.innerHTML += `
       <div class="carte-unite" onclick="chargerUnite(${i})">
@@ -191,6 +193,7 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
