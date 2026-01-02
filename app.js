@@ -1,34 +1,36 @@
 let unites = [];
+let uniteEnEdition = null;
 
 /* ---------- UTILITAIRES ---------- */
 function d6() {
-  return Math.floor(Math.random()*6)+1;
+  return Math.floor(Math.random() * 6) + 1;
 }
 
 function degatsAleatoires(min, max) {
-  if (min === max) return min;
-  return Math.floor(Math.random()*(max-min+1))+min;
+  return min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-/* ---------- SAUVEGARDE LOCALE ---------- */
+/* ---------- SAUVEGARDE ---------- */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
 }
 
 function charger() {
-  let data = localStorage.getItem("unitesWarhammer");
-  if (data) {
-    unites = JSON.parse(data);
-    mettreAJourSelects();
-    afficher("Unités chargées");
-    afficherUnites();
-  }
+  const data = localStorage.getItem("unitesWarhammer");
+  if (data) unites = JSON.parse(data);
+  rafraichirUI();
+}
+
+/* ---------- UI GLOBALE ---------- */
+function rafraichirUI() {
+  mettreAJourSelects();
+  afficherUnites();
+  afficherCombat();
 }
 
 /* ---------- UNITÉS ---------- */
-
 function ajouterUnite() {
-  let unite = {
+  const unite = {
     nom: nom.value,
     image: image.value,
     pvMax: parseInt(pv.value),
@@ -43,32 +45,51 @@ function ajouterUnite() {
   if (uniteEnEdition !== null) {
     unites[uniteEnEdition] = unite;
     uniteEnEdition = null;
-    afficher("Unité modifiée : " + unite.nom);
+    afficher("Unité modifiée");
   } else {
     unites.push(unite);
-    afficher("Unité ajoutée : " + unite.nom);
+    afficher("Unité ajoutée");
   }
 
   sauvegarder();
-  mettreAJourSelects();
-  afficherUnites();
+  rafraichirUI();
 }
 
+function supprimerUnite() {
+  if (uniteEnEdition === null) return alert("Sélectionne une unité");
 
-function mettreAJourSelects() {
-  attaquant.innerHTML = "";
-  defenseur.innerHTML = "";
+  unites.splice(uniteEnEdition, 1);
+  uniteEnEdition = null;
+
+  sauvegarder();
+  rafraichirUI();
+  afficher("Unité supprimée");
+}
+
+/* ---------- LISTE UNITÉS ---------- */
+function afficherUnites() {
+  listeUnites.innerHTML = "";
+
   unites.forEach((u, i) => {
-    attaquant.innerHTML += `<option value="${i}">${u.nom}</option>`;
-    defenseur.innerHTML += `<option value="${i}">${u.nom}</option>`;
+    const pct = Math.max(0, (u.pv / u.pvMax) * 100);
+    const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
+
+    listeUnites.innerHTML += `
+      <div class="carte-unite" onclick="chargerUnite(${i})">
+        <img src="${u.image}">
+        <div>${u.nom}</div>
+        <div>${u.pv} / ${u.pvMax} PV</div>
+        <div class="barre-vie">
+          <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
+        </div>
+      </div>
+    `;
   });
 }
 
-let uniteEnEdition = null;
-
-function chargerUnite(index) {
-  let u = unites[index];
-  uniteEnEdition = index;
+function chargerUnite(i) {
+  const u = unites[i];
+  uniteEnEdition = i;
 
   nom.value = u.nom;
   image.value = u.image;
@@ -80,136 +101,67 @@ function chargerUnite(index) {
   degMax.value = u.degMax;
 }
 
-/* ---------- AFFICHAGE UNITÉS ---------- */
-function afficherUnites() {
-  listeUnites.innerHTML = "";
-
-  unites.forEach((u, i) => {
-    let pourcentage = Math.max(0, (u.pv / u.pvMax) * 100);
-    let couleur = pourcentage > 50 ? "#3fa93f" : pourcentage > 25 ? "#e0b000" : "#c0392b";
-
-
-    listeUnites.innerHTML += `
-      <div class="carte-unite" onclick="chargerUnite(${i})">
-        <img src="${u.image}">
-        <div class="nom-unite">${u.nom}</div>
-
-        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-
-        <div class="barre-vie">
-          <div class="barre-vie-interne" style="width:${pourcentage}%"></div>
-        </div>
-      </div>
-    `;
-  });
-}
-
-  
 /* ---------- COMBAT ---------- */
 function attaquer(type) {
-  let a = unites[attaquant.value];
-  let d = unites[defenseur.value];
+  const a = unites[attaquant.value];
+  const d = unites[defenseur.value];
   if (!a || !d || d.pv <= 0) return;
 
-  let nb = parseInt(attaques.value);
-  let touche = type === "cac" ? a.cac : a.dist;
   let pertes = 0;
+  const nb = parseInt(attaques.value);
+  const touche = type === "cac" ? a.cac : a.dist;
 
   for (let i = 0; i < nb; i++) {
-    if (d6() >= touche) {
-      if (d6() < d.save) {
-        let deg = degatsAleatoires(a.degMin, a.degMax);
-        d.pv -= deg;
-        pertes += deg;
-      }
+    if (d6() >= touche && d6() < d.save) {
+      const deg = degatsAleatoires(a.degMin, a.degMax);
+      d.pv -= deg;
+      pertes += deg;
     }
   }
 
-  if (d.pv < 0) d.pv = 0;
-
+  d.pv = Math.max(0, d.pv);
   sauvegarder();
+  rafraichirUI();
 
-  // ✅ RAFRAÎCHISSEMENT IMMÉDIAT DE L'UI
-  afficherCombat();
-  afficherUnites();
-
-  afficher(`${a.nom} inflige ${pertes} dégâts à ${d.nom} — PV restants : ${d.pv}`);
+  afficher(`${a.nom} inflige ${pertes} dégâts à ${d.nom}`);
 }
 
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
-  afficherCombat();
-  afficherUnites();
+  rafraichirUI();
   afficher("Combat réinitialisé");
 }
 
-
+/* ---------- AFFICHAGE COMBAT ---------- */
 function afficherCombat() {
-  let a = unites[attaquant.value];
-  let d = unites[defenseur.value];
-
+  const a = unites[attaquant.value];
+  const d = unites[defenseur.value];
   if (!a || !d) return;
 
-  zoneAttaquant.innerHTML = `
-    <img src="${a.image}">
-    <div><strong>${a.nom}</strong></div>
-    <div>PV : ${a.pv} / ${a.pvMax}</div>
-  `;
+  zoneAttaquant.innerHTML = renderCombatUnite(a);
+  zoneDefenseur.innerHTML = renderCombatUnite(d);
+}
 
-  zoneDefenseur.innerHTML = `
-    <img src="${d.image}">
-    <div><strong>${d.nom}</strong></div>
-    <div>PV : ${d.pv} / ${d.pvMax}</div>
+function renderCombatUnite(u) {
+  const pct = Math.max(0, (u.pv / u.pvMax) * 100);
+  const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
+
+  return `
+    <img src="${u.image}">
+    <div><strong>${u.nom}</strong></div>
+    <div>${u.pv} / ${u.pvMax} PV</div>
+    <div class="barre-vie">
+      <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
+    </div>
   `;
 }
 
-function supprimerUnite() {
-  if (uniteEnEdition === null) {
-    alert("Sélectionne une unité à supprimer");
-    return;
-  }
-
-  if (!confirm("Supprimer cette unité ?")) return;
-
-  unites.splice(uniteEnEdition, 1);
-  uniteEnEdition = null;
-
-  sauvegarder();
-  mettreAJourSelects();
-  afficherUnites();
-  afficher("Unité supprimée");
-
-  // vider le formulaire
-  nom.value = "";
-  image.value = "";
-  pv.value = "";
-  save.value = "";
-  cac.value = "";
-  dist.value = "";
-  degMin.value = "";
-  degMax.value = "";
-}
-
-
-/* ---------- UI ---------- */
+/* ---------- TEXTE ---------- */
 function afficher(txt) {
   resultat.innerText = txt;
   resultatCombat.innerText = txt;
 }
 
-
-/* ---------- AU CHARGEMENT ---------- */
+/* ---------- INIT ---------- */
 charger();
-
-
-
-
-
-
-
-
-
-
-
-
