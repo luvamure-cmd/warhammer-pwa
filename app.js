@@ -116,22 +116,31 @@ function afficherChoixCombat() {
   listeDefenseurs.innerHTML = "";
 
   unites.forEach((u, i) => {
-    const carte = `
-      <div class="carte-unite">
-        <img src="${u.image}">
-        <div class="nom-unite">${u.nom}</div>
-        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-        ${renderBarrePV(u)}
-      </div>
+
+    const carteAtt = document.createElement("div");
+    carteAtt.className = "carte-unite";
+    carteAtt.innerHTML = `
+      <img src="${u.image}">
+      <div class="nom-unite">${u.nom}</div>
+      <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+      ${renderBarrePV(u)}
     `;
+    carteAtt.onclick = () => {
+      indexAttaquant = i;
+      afficherCombat();
+    };
 
-    listeAttaquants.innerHTML +=
-      `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
+    const carteDef = carteAtt.cloneNode(true);
+    carteDef.onclick = () => {
+      indexDefenseur = i;
+      afficherCombat();
+    };
 
-    listeDefenseurs.innerHTML +=
-      `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
+    listeAttaquants.appendChild(carteAtt);
+    listeDefenseurs.appendChild(carteDef);
   });
 }
+
 
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
@@ -192,3 +201,4 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
