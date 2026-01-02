@@ -15,24 +15,26 @@
 
 <!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
 <div class="box">
-  <h3>➕ Ajouter / Modifier une unité</h3>
+  <h3 class="toggle-section">➕ Ajouter / Modifier une unité ▼</h3>
+  <div class="section-contenu">
+    <input id="nom" placeholder="Nom de l'unité">
+    <input id="pv" type="number" placeholder="PV">
+    <input id="image" placeholder="URL de l'image">
+    <input id="save" type="number" placeholder="Sauvegarde">
+    <input id="cac" type="number" placeholder="Touche CAC">
+    <input id="dist" type="number" placeholder="Touche Distance">
+    <input id="attaquesUnite" type="number" placeholder="Attaques">
+    <input id="degMin" type="number" placeholder="Dégâts min">
+    <input id="degMax" type="number" placeholder="Dégâts max">
 
-  <input id="nom" placeholder="Nom de l'unité">
-  <input id="pv" type="number" placeholder="PV">
-  <input id="image" placeholder="URL de l'image">
-  <input id="save" type="number" placeholder="Sauvegarde">
-  <input id="cac" type="number" placeholder="Touche CAC">
-  <input id="dist" type="number" placeholder="Touche Distance">
-  <input id="attaquesUnite" type="number" placeholder="Attaques">
-  <input id="degMin" type="number" placeholder="Dégâts min">
-  <input id="degMax" type="number" placeholder="Dégâts max">
+    <button onclick="ajouterUnite()">Ajouter / Modifier</button>
+    <button onclick="supprimerUnite()" style="background:#a33">Supprimer</button>
 
-  <button onclick="ajouterUnite()">Ajouter / Modifier</button>
-  <button onclick="supprimerUnite()" style="background:#a33">Supprimer</button>
-
-  <h4>📦 Unités créées</h4>
-  <div id="listeUnites" class="liste-unites"></div>
+    <h4>📦 Unités créées</h4>
+    <div id="listeUnites" class="liste-unites"></div>
+  </div>
 </div>
+
 
 <!-- ================= COMBAT ================= -->
 <div class="box">
@@ -65,3 +67,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+
