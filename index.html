@@ -24,6 +24,7 @@
   <input id="save" type="number" placeholder="Sauvegarde">
   <input id="cac" type="number" placeholder="Touche CAC">
   <input id="dist" type="number" placeholder="Touche Distance">
+  <input id="attaquesUnite" type="number" placeholder="Attaques">
   <input id="degMin" type="number" placeholder="Dégâts min">
   <input id="degMax" type="number" placeholder="Dégâts max">
 
@@ -45,7 +46,6 @@
 
   <select id="attaquant" onchange="afficherCombat()"></select>
   <select id="defenseur" onchange="afficherCombat()"></select>
-  <input id="attaques" type="number" placeholder="Nombre d'attaques">
 
   <button type="button" onclick="attaquer('cac')">Attaque CAC</button>
   <button type="button" onclick="attaquer('dist')">Attaque Distance</button>
@@ -75,3 +75,4 @@ if (navigator.serviceWorker) {
 
 </body>
 </html>
+
