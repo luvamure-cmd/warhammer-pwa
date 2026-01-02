@@ -21,6 +21,7 @@ function charger() {
     unites = JSON.parse(data);
     mettreAJourSelects();
     afficher("Unités chargées");
+    afficherUnites();
   }
 }
 
@@ -40,6 +41,7 @@ function ajouterUnite() {
   unites.push(unite);
   sauvegarder();
   mettreAJourSelects();
+  afficherUnites();
   afficher("Unité ajoutée : " + unite.nom);
   if (uniteEnEdition !== null) {
   unites[uniteEnEdition] = unite;
@@ -125,5 +127,6 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
