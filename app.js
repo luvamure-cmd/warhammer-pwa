@@ -17,8 +17,10 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
-const contenuAjout = document.getElementById("contenuAjout");
-const flecheAjout = document.getElementById("flecheAjout");
+
+const boxUnites = document.getElementById("boxUnites");
+const formUnites = document.getElementById("formUnites");
+const toggleUnites = document.getElementById("toggleUnites");
 
 /* ========= ÉTAT ========= */
 let unites = [];
@@ -26,25 +28,15 @@ let uniteEnEdition = null;
 let indexAttaquant = null;
 let indexDefenseur = null;
 
-const IMAGE_DEFAUT = "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
+const IMAGE_DEFAUT =
+  "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
-/* ========= OUTILS ========= */
+/* ========= UTILITAIRES ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
 /* ========= STORAGE ========= */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
-}
-
-/* ========= TOGGLE AJOUT ========= */
-function toggleAjout() {
-  if (contenuAjout.style.display === "none") {
-    contenuAjout.style.display = "block";
-    flecheAjout.textContent = "▼";
-  } else {
-    contenuAjout.style.display = "none";
-    flecheAjout.textContent = "►";
-  }
 }
 
 /* ========= BARRE PV ========= */
@@ -71,8 +63,9 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  if (uniteEnEdition !== null) unites[uniteEnEdition] = u;
-  else unites.push(u);
+  uniteEnEdition !== null
+    ? (unites[uniteEnEdition] = u)
+    : unites.push(u);
 
   uniteEnEdition = null;
   sauvegarder();
@@ -90,6 +83,7 @@ function supprimerUnite() {
 function chargerUnite(i) {
   const u = unites[i];
   uniteEnEdition = i;
+
   nom.value = u.nom;
   image.value = u.image;
   pv.value = u.pvMax;
@@ -101,7 +95,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= AFFICHAGE UNITÉS ========= */
+/* ========= AFFICHAGES ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
@@ -134,7 +128,6 @@ function afficherChoixCombat() {
   });
 }
 
-/* ========= COMBAT ========= */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
   zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
@@ -151,7 +144,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= ATTAQUE ========= */
+/* ========= COMBAT ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -163,12 +156,12 @@ function attaquer(type) {
 
   for (let i = 1; i <= a.attaques; i++) {
     const jetTouche = d6();
-    const touche = jetTouche >= a[type]; // touche si jet >= caractéristique de l'attaquant
+    const touche = jetTouche >= a[type];
     journal += `Attaque ${i} : jet de touche ${jetTouche} -> ${touche ? "Touchée" : "Ratée"}\n`;
 
     if (touche) {
       const jetSave = d6();
-      const sauvegarde = jetSave >= d.save; // sauvegarde réussie si jet >= save du défenseur
+      const sauvegarde = jetSave >= d.save;
       if (!sauvegarde) {
         const deg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= deg;
@@ -187,12 +180,11 @@ function attaquer(type) {
   resultat.scrollTop = resultat.scrollHeight;
 }
 
-
-/* ========= RESET COMBAT ========= */
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
+  resultat.textContent = "Combat réinitialisé";
 }
 
 /* ========= GLOBAL ========= */
@@ -203,7 +195,16 @@ function rafraichirTout() {
 }
 
 /* ========= INIT ========= */
+toggleUnites.addEventListener("click", () => {
+  if (formUnites.style.display === "none") {
+    formUnites.style.display = "block";
+    toggleUnites.textContent = "➕ Ajouter / Modifier une unité ▼";
+  } else {
+    formUnites.style.display = "none";
+    toggleUnites.textContent = "➕ Ajouter / Modifier une unité ►";
+  }
+});
+
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
-
