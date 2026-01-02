@@ -17,6 +17,8 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
+const toggleFormBtn = document.getElementById("toggleForm");
+const formBox = document.querySelector(".box");
 
 /* ========= ÉTAT ========= */
 let unites = [];
@@ -27,7 +29,7 @@ let indexDefenseur = null;
 const IMAGE_DEFAUT =
   "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
-/* ========= UTILITAIRES ========= */
+/* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
 /* ========= STORAGE ========= */
@@ -93,7 +95,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= AFFICHAGES ========= */
+/* ========= AFFICHAGE UNITÉS ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
@@ -121,12 +123,12 @@ function afficherChoixCombat() {
         ${renderBarrePV(u)}
       </div>
     `;
-
-    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
-    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
+    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i}; afficherCombat()">${carte}</div>`;
+    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i}; afficherCombat()">${carte}</div>`;
   });
 }
 
+/* ========= COMBAT ========= */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
   zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
@@ -143,37 +145,55 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
-  let degats = 0;
-  const touche = type === "cac" ? a.cac : a.dist;
-
+  let journal = "";
   for (let i = 0; i < a.attaques; i++) {
-    if (d6() >= touche && d6() < d.save) {
-      const dmg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-      d.pv -= dmg;
-      degats += dmg;
+    const jetTouche = d6();
+    let touche = false;
+    let sauvegarde = false;
+    let degats = 0;
+
+    if (jetTouche > (type === "cac" ? a.cac : a.dist)) {
+      touche = true;
+      const jetSave = d6();
+      if (jetSave <= d.save) {
+        sauvegarde = true;
+      } else {
+        degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+        d.pv -= degats;
+        d.pv = Math.max(0, d.pv);
+      }
+    }
+
+    journal += `Attaque ${i + 1} : `;
+    if (!touche) {
+      journal += `ratée (jet de touche ${jetTouche})\n`;
+    } else {
+      journal += `touchée (jet de touche ${jetTouche}), `;
+      journal += sauvegarde ? "sauvegarde réussie" : `sauvegarde ratée : ${degats} PV perdus`;
+      journal += "\n";
     }
   }
 
-  d.pv = Math.max(0, d.pv);
   sauvegarder();
   rafraichirTout();
-  resultat.innerText = `${a.nom} inflige ${degats} dégâts à ${d.nom}`;
+  resultat.innerText = journal;
+  resultat.scrollTop = resultat.scrollHeight; // défiler le journal si besoin
 }
 
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
+  resultat.innerText = "Combat réinitialisé";
 }
 
-/* ========= RAFRAICHIR TOUT ========= */
+/* ========= GLOBAL ========= */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
@@ -184,17 +204,3 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
-
-/* ========= SECTION PLIABLE ========= */
-document.querySelectorAll(".toggle-section").forEach(title => {
-  title.addEventListener("click", () => {
-    const content = title.nextElementSibling; // la div à cacher/afficher
-    content.classList.toggle("collapse");
-
-    if (content.classList.contains("collapse")) {
-      title.textContent = title.textContent.replace("▼", "►");
-    } else {
-      title.textContent = title.textContent.replace("►", "▼");
-    }
-  });
-});
