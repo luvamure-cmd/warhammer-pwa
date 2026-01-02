@@ -51,6 +51,20 @@ function mettreAJourSelects() {
   });
 }
 
+function afficherUnites() {
+  listeUnites.innerHTML = "";
+
+  unites.forEach((u, i) => {
+    listeUnites.innerHTML += `
+      <div class="carte-unite" onclick="chargerUnite(${i})">
+        <img src="${u.image}">
+        <div>${u.nom}</div>
+      </div>
+    `;
+  });
+}
+
+
 /* ---------- COMBAT ---------- */
 function attaquer(type) {
   let a = unites[attaquant.value];
@@ -89,3 +103,4 @@ function afficher(txt) {
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
