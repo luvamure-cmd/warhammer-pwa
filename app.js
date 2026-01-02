@@ -150,10 +150,13 @@ function afficherCombat() {
 /* ---------- UI ---------- */
 function afficher(txt) {
   resultat.innerText = txt;
+  resultatCombat.innerText = txt;
 }
+
 
 /* ---------- AU CHARGEMENT ---------- */
 charger();
+
 
 
 
