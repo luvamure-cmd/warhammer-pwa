@@ -47,7 +47,9 @@ function charger() {
       nom: u.nom || "Unité",
       image: u.image || "",
       pvMax: Number(u.pvMax) || 10,
-      pv: Number(u.pv) ?? Number(u.pvMax) || 10,
+      pv: (u.pv !== undefined && u.pv !== null)
+      ? Number(u.pv)
+      : (Number(u.pvMax) || 10),
       save: Number(u.save) || 4,
       cac: Number(u.cac) || 4,
       dist: Number(u.dist) || 4,
@@ -233,3 +235,4 @@ function renderCombatUnite(u) {
 
 /* ========= INIT ========= */
 charger();
+
