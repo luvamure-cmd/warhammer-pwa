@@ -37,6 +37,30 @@ function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
 }
 
+/* ========= SELECTS ========= */
+function mettreAJourSelects() {
+  const selA = attaquant.value;
+  const selD = defenseur.value;
+
+  attaquant.innerHTML = "";
+  defenseur.innerHTML = "";
+
+  unites.forEach((u, i) => {
+    const optA = document.createElement("option");
+    optA.value = i;
+    optA.textContent = u.nom;
+    attaquant.appendChild(optA);
+
+    const optD = document.createElement("option");
+    optD.value = i;
+    optD.textContent = u.nom;
+    defenseur.appendChild(optD);
+  });
+
+  if (selA !== "" && unites[selA]) attaquant.value = selA;
+  if (selD !== "" && unites[selD]) defenseur.value = selD;
+}
+
 function charger() {
   const data = localStorage.getItem("unitesWarhammer");
   if (!data) return;
@@ -137,24 +161,8 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= SELECTS ========= */
-function mettreAJourSelects() {
-  const selA = attaquant.value;
-  const selD = defenseur.value;
 
-  attaquant.innerHTML = "";
-  defenseur.innerHTML = "";
 
-  unites.forEach((u, i) => {
-    const a = new Option(u.nom, i);
-    const d = new Option(u.nom, i);
-    attaquant.add(a);
-    defenseur.add(d);
-  });
-
-  if (unites[selA]) attaquant.value = selA;
-  if (unites[selD]) defenseur.value = selD;
-}
 
 /* ========= LISTE UNITÉS ========= */
 function afficherUnites() {
@@ -235,4 +243,5 @@ function renderCombatUnite(u) {
 
 /* ========= INIT ========= */
 charger();
+
 
