@@ -7,23 +7,24 @@
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
-
 </head>
+
 <body>
 
 <h2>⚔️ Simulateur Warhammer</h2>
 
 <!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
 <div class="box">
-  <h3 class="toggle-section">► Ajouter / Modifier une unité</h3>
-  <div class="section-ajout">
+  <h3 style="cursor:pointer;" onclick="toggleAjout()">➕ Ajouter / Modifier une unité <span id="flecheAjout">▼</span></h3>
+
+  <div id="contenuAjout">
     <input id="nom" placeholder="Nom de l'unité">
     <input id="pv" type="number" placeholder="PV">
     <input id="image" placeholder="URL de l'image">
-    <input id="save" type="number" placeholder="Sauvegarde">
-    <input id="cac" type="number" placeholder="Touche CAC">
-    <input id="dist" type="number" placeholder="Touche Distance">
-    <input id="attaquesUnite" type="number" placeholder="Attaques">
+    <input id="save" type="number" placeholder="Sauvegarde (1-6)">
+    <input id="cac" type="number" placeholder="Touche CAC (1-6)">
+    <input id="dist" type="number" placeholder="Touche Distance (1-6)">
+    <input id="attaquesUnite" type="number" placeholder="Nombre d'attaques">
     <input id="degMin" type="number" placeholder="Dégâts min">
     <input id="degMax" type="number" placeholder="Dégâts max">
 
@@ -35,8 +36,6 @@
   </div>
 </div>
 
-
-
 <!-- ================= COMBAT ================= -->
 <div class="box">
   <h3>⚔️ Combat</h3>
@@ -46,7 +45,7 @@
     <div id="zoneDefenseur" class="zone-combat"></div>
   </div>
 
-  <div id="resultat" class="resultat-combat">Aucune action</div>
+  <div id="resultat" class="resultat-combat" style="white-space: pre-wrap; max-height: 200px; overflow-y:auto;">Aucune action</div>
 
   <div class="choix-combat">
     <div>
@@ -68,5 +67,3 @@
 <script src="app.js"></script>
 </body>
 </html>
-
-
