@@ -78,6 +78,7 @@ function charger() {
       save: Number(u.save) || 4,
       cac: Number(u.cac) || 4,
       dist: Number(u.dist) || 4,
+      attaques: Number(u.attaques) || 1,
       degMin: Number(u.degMin) || 1,
       degMax: Number(u.degMax) || 1
     }));
@@ -107,17 +108,19 @@ function ajouterUnite() {
     return;
   }
 
-  const unite = {
-    nom: nom.value,
-    image: image.value,
-    pvMax: parseInt(pv.value),
-    pv: parseInt(pv.value),
-    save: parseInt(save.value) || 4,
-    cac: parseInt(cac.value) || 4,
-    dist: parseInt(dist.value) || 4,
-    degMin: parseInt(degMin.value) || 1,
-    degMax: parseInt(degMax.value) || 1
-  };
+const unite = {
+  nom: nom.value,
+  image: image.value,
+  pvMax: parseInt(pv.value),
+  pv: parseInt(pv.value),
+  attaques: parseInt(attaquesUnite.value) || 1,
+  save: parseInt(save.value) || 4,
+  cac: parseInt(cac.value) || 4,
+  dist: parseInt(dist.value) || 4,
+  degMin: parseInt(degMin.value) || 1,
+  degMax: parseInt(degMax.value) || 1
+};
+
 
   if (uniteEnEdition !== null) {
     unites[uniteEnEdition] = unite;
@@ -158,6 +161,7 @@ function chargerUnite(i) {
   save.value = u.save;
   cac.value = u.cac;
   dist.value = u.dist;
+  attaquesUnite.value = u.attaques;
   degMin.value = u.degMin;
   degMax.value = u.degMax;
 }
@@ -190,7 +194,7 @@ function attaquer(type) {
   if (!a || !d || d.pv <= 0) return;
 
   let pertes = 0;
-  const nb = parseInt(attaques.value) || 1;
+  const nb = a.attaques || 1;
   const touche = type === "cac" ? a.cac : a.dist;
 
   for (let i = 0; i < nb; i++) {
@@ -232,6 +236,7 @@ function renderCombatUnite(u) {
   return `
     <img src="${u.image}">
     <div><strong>${u.nom}</strong></div>
+    <div>Attaques : ${u.attaques}</div>
     <div>${u.pv} / ${u.pvMax} PV</div>
     <div class="barre-vie">
       <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
@@ -241,4 +246,5 @@ function renderCombatUnite(u) {
 
 /* ========= INIT ========= */
 charger();
+
 
