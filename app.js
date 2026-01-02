@@ -30,10 +30,6 @@ const IMAGE_DEFAUT =
 /* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
-function degatsAleatoires(min, max) {
-  return min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 /* ========= STORAGE ========= */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
@@ -44,23 +40,11 @@ function renderBarrePV(u) {
   const pct = Math.max(0, (u.pv / u.pvMax) * 100);
   const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
 
-  return `<div class="barre-vie">
-            <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
-          </div>`;
-}
-
-/* ========= CRÉER CARTE ========= */
-function creerCarte(u, clicCallback) {
-  const div = document.createElement("div");
-  div.className = "carte-unite";
-  div.innerHTML = `
-    <img src="${u.image || IMAGE_DEFAUT}">
-    <div class="nom-unite">${u.nom}</div>
-    <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-    ${renderBarrePV(u)}
+  return `
+    <div class="barre-vie">
+      <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
+    </div>
   `;
-  div.addEventListener("click", clicCallback);
-  return div;
 }
 
 /* ========= UNITÉS ========= */
@@ -80,11 +64,9 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  if (uniteEnEdition !== null) {
-    unites[uniteEnEdition] = u;
-  } else {
-    unites.push(u);
-  }
+  uniteEnEdition !== null
+    ? (unites[uniteEnEdition] = u)
+    : unites.push(u);
 
   uniteEnEdition = null;
   sauvegarder();
@@ -92,7 +74,7 @@ function ajouterUnite() {
 }
 
 function supprimerUnite() {
-  if (uniteEnEdition === null) return alert("Sélectionne une unité");
+  if (uniteEnEdition === null) return;
   unites.splice(uniteEnEdition, 1);
   uniteEnEdition = null;
   sauvegarder();
@@ -114,12 +96,23 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= AFFICHAGE UNITÉS ========= */
+/* ========= AFFICHAGES ========= */
+function creerCarte(u) {
+  return `
+    <div class="carte-unite">
+      <img src="${u.image}">
+      <div class="nom-unite">${u.nom}</div>
+      <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+      ${renderBarrePV(u)}
+    </div>
+  `;
+}
+
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
-    const carte = creerCarte(u, () => chargerUnite(i));
-    listeUnites.appendChild(carte);
+    const carteHTML = creerCarte(u);
+    listeUnites.innerHTML += `<div onclick="chargerUnite(${i})">${carteHTML}</div>`;
   });
 }
 
@@ -128,28 +121,31 @@ function afficherChoixCombat() {
   listeDefenseurs.innerHTML = "";
 
   unites.forEach((u, i) => {
-    const carteAtt = creerCarte(u, () => { indexAttaquant = i; afficherCombat(); });
-    const carteDef = creerCarte(u, () => { indexDefenseur = i; afficherCombat(); });
+    const carteHTML = creerCarte(u);
 
-    listeAttaquants.appendChild(carteAtt);
-    listeDefenseurs.appendChild(carteDef);
+    listeAttaquants.innerHTML += `
+      <div onclick="indexAttaquant=${i};afficherCombat()">
+        ${carteHTML}
+      </div>
+    `;
+
+    listeDefenseurs.innerHTML += `
+      <div onclick="indexDefenseur=${i};afficherCombat()">
+        ${carteHTML}
+      </div>
+    `;
   });
 }
 
-/* ========= COMBAT ========= */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
-
-  const a = unites[indexAttaquant];
-  const d = unites[indexDefenseur];
-
-  zoneAttaquant.innerHTML = renderCombat(a);
-  zoneDefenseur.innerHTML = renderCombat(d);
+  zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
+  zoneDefenseur.innerHTML = renderCombat(unites[indexDefenseur]);
 }
 
 function renderCombat(u) {
   return `
-    <img src="${u.image || IMAGE_DEFAUT}">
+    <img src="${u.image}">
     <div><strong>${u.nom}</strong></div>
     <div>Attaques : ${u.attaques}</div>
     <div>${u.pv} / ${u.pvMax} PV</div>
@@ -157,8 +153,10 @@ function renderCombat(u) {
   `;
 }
 
+/* ========= COMBAT ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
+
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
@@ -168,7 +166,7 @@ function attaquer(type) {
 
   for (let i = 0; i < a.attaques; i++) {
     if (d6() >= touche && d6() < d.save) {
-      const dmg = degatsAleatoires(a.degMin, a.degMax);
+      const dmg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
       d.pv -= dmg;
       degats += dmg;
     }
@@ -186,7 +184,7 @@ function resetCombat() {
   rafraichirTout();
 }
 
-/* ========= RAFRAICHIR TOUT ========= */
+/* ========= GLOBAL ========= */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
@@ -197,3 +195,18 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
+/* ========= ACCORDION : SECTION AJOUT / MODIF UNITÉ ========= */
+document.querySelectorAll(".toggle-section").forEach(title => {
+  title.addEventListener("click", () => {
+    const content = title.nextElementSibling;
+    content.classList.toggle("collapse");
+
+    // changer la flèche
+    if (content.classList.contains("collapse")) {
+      title.textContent = title.textContent.replace("▼", "►");
+    } else {
+      title.textContent = title.textContent.replace("►", "▼");
+    }
+  });
+});
