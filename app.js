@@ -1,3 +1,24 @@
+const nom = document.getElementById("nom");
+const pv = document.getElementById("pv");
+const image = document.getElementById("image");
+const save = document.getElementById("save");
+const cac = document.getElementById("cac");
+const dist = document.getElementById("dist");
+const degMin = document.getElementById("degMin");
+const degMax = document.getElementById("degMax");
+
+const attaquant = document.getElementById("attaquant");
+const defenseur = document.getElementById("defenseur");
+const attaques = document.getElementById("attaques");
+
+const zoneAttaquant = document.getElementById("zoneAttaquant");
+const zoneDefenseur = document.getElementById("zoneDefenseur");
+
+const listeUnites = document.getElementById("listeUnites");
+const resultat = document.getElementById("resultat");
+const resultatCombat = document.getElementById("resultatCombat");
+
+
 let unites = [];
 let uniteEnEdition = null;
 
@@ -165,3 +186,4 @@ function afficher(txt) {
 
 /* ---------- INIT ---------- */
 charger();
+
