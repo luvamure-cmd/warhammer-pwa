@@ -37,10 +37,34 @@ function sauvegarder() {
 }
 
 function charger() {
-  const data = localStorage.getItem("unitesWarhammer");
-  if (data) unites = JSON.parse(data);
-  rafraichirUI();
+  let data = localStorage.getItem("unitesWarhammer");
+  if (!data) return;
+
+  try {
+    let parsed = JSON.parse(data);
+
+    unites = parsed.map(u => ({
+      nom: u.nom || "Unité",
+      image: u.image || "",
+      pvMax: Number(u.pvMax) || 10,
+      pv: Number(u.pv) || Number(u.pvMax) || 10,
+      save: Number(u.save) || 4,
+      cac: Number(u.cac) || 4,
+      dist: Number(u.dist) || 4,
+      degMin: Number(u.degMin) || 1,
+      degMax: Number(u.degMax) || 1
+    }));
+
+    mettreAJourSelects();
+    afficherUnites();
+    afficher("Unités chargées");
+
+  } catch (e) {
+    console.error("Erreur de chargement :", e);
+    localStorage.removeItem("unitesWarhammer");
+  }
 }
+
 
 /* ---------- UI GLOBALE ---------- */
 function rafraichirUI() {
@@ -51,6 +75,10 @@ function rafraichirUI() {
 
 /* ---------- UNITÉS ---------- */
 function ajouterUnite() {
+  if (!nom.value || !pv.value) {
+  alert("Nom et PV obligatoires");
+  return;
+}
   const unite = {
     nom: nom.value,
     image: image.value,
@@ -186,4 +214,5 @@ function afficher(txt) {
 
 /* ---------- INIT ---------- */
 charger();
+
 
