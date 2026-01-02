@@ -37,3 +37,20 @@ button {
 .pv {
   font-weight: bold;
 }
+
+.liste-unites {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 100px);
+  gap: 10px;
+}
+
+.carte-unite {
+  text-align: center;
+  cursor: pointer;
+}
+
+.carte-unite img {
+  width: 100px;
+  border-radius: 10px;
+  border: 2px solid #333;
+}
