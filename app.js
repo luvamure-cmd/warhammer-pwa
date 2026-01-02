@@ -1,4 +1,7 @@
 /* ========= DOM ========= */
+const toggleUnites = document.getElementById("toggleUnites");
+const formUnites = document.getElementById("formUnites");
+
 const nom = document.getElementById("nom");
 const pv = document.getElementById("pv");
 const image = document.getElementById("image");
@@ -17,10 +20,6 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
-
-const boxUnites = document.getElementById("boxUnites");
-const formUnites = document.getElementById("formUnites");
-const toggleUnites = document.getElementById("toggleUnites");
 
 /* ========= ÉTAT ========= */
 let unites = [];
@@ -46,7 +45,7 @@ function renderBarrePV(u) {
   return `<div class="barre-vie"><div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div></div>`;
 }
 
-/* ========= UNITÉS ========= */
+/* ========= FORMULAIRE UNITÉ ========= */
 function ajouterUnite() {
   if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
@@ -83,7 +82,6 @@ function supprimerUnite() {
 function chargerUnite(i) {
   const u = unites[i];
   uniteEnEdition = i;
-
   nom.value = u.nom;
   image.value = u.image;
   pv.value = u.pvMax;
@@ -95,7 +93,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= AFFICHAGES ========= */
+/* ========= AFFICHAGE UNITÉS ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
@@ -123,13 +121,32 @@ function afficherChoixCombat() {
         ${renderBarrePV(u)}
       </div>
     `;
-    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
-    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
+
+    const clickAtt = () => {
+      indexAttaquant = i;
+      afficherCombat();
+    };
+    const clickDef = () => {
+      indexDefenseur = i;
+      afficherCombat();
+    };
+
+    const divAtt = document.createElement("div");
+    divAtt.innerHTML = carte;
+    divAtt.onclick = clickAtt;
+    listeAttaquants.appendChild(divAtt);
+
+    const divDef = document.createElement("div");
+    divDef.innerHTML = carte;
+    divDef.onclick = clickDef;
+    listeDefenseurs.appendChild(divDef);
   });
 }
 
+/* ========= COMBAT ========= */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
+
   zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
   zoneDefenseur.innerHTML = renderCombat(unites[indexDefenseur]);
 }
@@ -144,7 +161,6 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -153,38 +169,37 @@ function attaquer(type) {
   if (d.pv <= 0) return;
 
   let journal = "";
+  const nbAttaques = a.attaques;
 
-  for (let i = 1; i <= a.attaques; i++) {
+  for (let i = 1; i <= nbAttaques; i++) {
     const jetTouche = d6();
-    const touche = jetTouche >= a[type];
-    journal += `Attaque ${i} : jet de touche ${jetTouche} -> ${touche ? "Touchée" : "Ratée"}\n`;
-
-    if (touche) {
+    const touche = type === "cac" ? a.cac : a.dist;
+    if (jetTouche > touche) {
+      // touche réussie, jet de sauvegarde
       const jetSave = d6();
-      const sauvegarde = jetSave >= d.save;
-      if (!sauvegarde) {
+      if (jetSave > d.save) {
         const deg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= deg;
         d.pv = Math.max(0, d.pv);
-        journal += ` → Jet de sauvegarde ${jetSave} raté : ${d.nom} perd ${deg} PV\n`;
+        journal += `Attaque ${i} : Touchée, sauvegarde ratée ! ${d.nom} perd ${deg} PV<br>`;
       } else {
-        journal += ` → Jet de sauvegarde ${jetSave} réussi : ${d.nom} ne perd pas de PV\n`;
+        journal += `Attaque ${i} : Touchée, sauvegarde réussie ! ${d.nom} ne perd pas de PV<br>`;
       }
+    } else {
+      journal += `Attaque ${i} : Manquée<br>`;
     }
   }
 
   sauvegarder();
   rafraichirTout();
-
-  resultat.textContent = journal;
-  resultat.scrollTop = resultat.scrollHeight;
+  resultat.innerHTML = journal;
 }
 
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
-  resultat.textContent = "Combat réinitialisé";
+  resultat.innerHTML = "Combat réinitialisé";
 }
 
 /* ========= GLOBAL ========= */
@@ -194,8 +209,18 @@ function rafraichirTout() {
   afficherCombat();
 }
 
-/* ========= INIT ========= */
-toggleUnites.addEventListener("click", () => {
+/* ========= FORMULAIRE RÉTRACTABLE ========= */
+if (toggleUnites && formUnites) {
+  // init ouvert
+  formUnites.style.display = "block";
+  toggleUnites.addEventListener("click", toggleFormUnites);
+  toggleUnites.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    toggleFormUnites();
+  });
+}
+
+function toggleFormUnites() {
   if (formUnites.style.display === "none") {
     formUnites.style.display = "block";
     toggleUnites.textContent = "➕ Ajouter / Modifier une unité ▼";
@@ -203,8 +228,9 @@ toggleUnites.addEventListener("click", () => {
     formUnites.style.display = "none";
     toggleUnites.textContent = "➕ Ajouter / Modifier une unité ►";
   }
-});
+}
 
+/* ========= INIT ========= */
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
