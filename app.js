@@ -1,65 +1,140 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Simulateur Warhammer</title>
-<link rel="stylesheet" href="style.css">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
+const state = {
+  unites: JSON.parse(localStorage.getItem("unites")) || [],
+  selection: { attaquant:null, defenseur:null },
+  edit:null
+};
 
-<body>
+const qs = id => document.getElementById(id);
 
-<h1>⚔️ Simulateur Warhammer</h1>
+qs("toggleForm").onclick = () => {
+  qs("formUnite").style.display =
+    qs("formUnite").style.display === "block" ? "none" : "block";
+};
 
-<!-- ===== CRÉATION UNITÉ ===== -->
-<section class="box">
-  <button id="toggleForm" class="toggle-btn">➕ Ajouter / Modifier une unité</button>
+qs("btnSave").onclick = () => {
+  const u = {
+    nom: qs("nom").value,
+    pvMax: +qs("pv").value,
+    pv: +qs("pv").value,
+    save: +qs("save").value,
+    cac: +qs("cac").value,
+    dist: +qs("dist").value,
+    attaques: +qs("attaques").value,
+    degMin: +qs("degMin").value,
+    degMax: +qs("degMax").value,
+    img: null
+  };
 
-  <div id="formUnite" class="form">
-    <input id="nom" placeholder="Nom">
-    <input id="pv" type="number" placeholder="PV">
-    <input id="save" type="number" placeholder="Save (ex: 4)">
-    <input id="cac" type="number" placeholder="Touche CAC">
-    <input id="dist" type="number" placeholder="Touche Distance">
-    <input id="attaques" type="number" placeholder="Attaques">
-    <input id="degMin" type="number" placeholder="Dégâts min">
-    <input id="degMax" type="number" placeholder="Dégâts max">
+  const file = qs("photo").files[0];
+  if (file) {
+    const r = new FileReader();
+    r.onload = () => {
+      u.img = r.result;
+      saveUnit(u);
+    };
+    r.readAsDataURL(file);
+  } else saveUnit(u);
+};
 
-    <input id="photo" type="file" accept="image/*">
+function saveUnit(u){
+  state.edit!==null ? state.unites[state.edit]=u : state.unites.push(u);
+  state.edit=null;
+  persist();
+  render();
+}
 
-    <button id="btnSave">💾 Sauvegarder</button>
-  </div>
-</section>
+function persist(){
+  localStorage.setItem("unites", JSON.stringify(state.unites));
+}
 
-<!-- ===== RECHERCHE ===== -->
-<section class="box">
-  <input id="search" placeholder="🔍 Rechercher une unité">
-</section>
+function render(){
+  const list = qs("listeUnites");
+  list.innerHTML="";
+  const f = qs("search").value?.toLowerCase() || "";
 
-<!-- ===== LISTE UNITÉS ===== -->
-<section class="box">
-  <div id="listeUnites" class="grid"></div>
-</section>
+  state.unites.forEach((u,i)=>{
+    if(!u.nom.toLowerCase().includes(f)) return;
 
-<!-- ===== COMBAT ===== -->
-<section class="box combat">
-  <h2>⚔️ Combat</h2>
+    const d=document.createElement("div");
+    d.className="card";
+    d.innerHTML=`
+      <img src="${u.img||''}">
+      <b>${u.nom}</b><br>
+      ❤️ ${u.pv}/${u.pvMax}
+      <button onclick="select(${i},'attaquant')">⚔️</button>
+      <button onclick="select(${i},'defenseur')">🛡️</button>
+      <button onclick="duplicate(${i})">📄</button>
+      <button onclick="remove(${i})">🗑️</button>
+    `;
+    list.appendChild(d);
+  });
 
-  <div class="zones">
-    <div id="attaquant" class="zone">Attaquant</div>
-    <div id="defenseur" class="zone">Défenseur</div>
-  </div>
+  updateZones();
+}
 
-  <button class="big" onclick="attaque('cac')">⚔️ CAC</button>
-  <button class="big" onclick="attaque('dist')">🏹 Distance</button>
-  <button class="big danger" onclick="resetCombat()">🔄 Reset</button>
+function select(i,type){
+  state.selection[type]=i;
+  updateZones();
+}
 
-  <pre id="log"></pre>
-</section>
+function updateZones(){
+  ["attaquant","defenseur"].forEach(t=>{
+    const i=state.selection[t];
+    qs(t).innerHTML=i===null?"—":state.unites[i].nom;
+  });
+}
 
-<!-- ===== ANIMATION DÉ ===== -->
-<img id="de" src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png">
+function duplicate(i){
+  const c={...state.unites[i]};
+  c.nom+=" +";
+  state.unites.push(c);
+  persist(); render();
+}
 
-<script src="app.js"></script>
-</body>
-</html>
+function remove(i){
+  if(confirm("Supprimer cette unité ?")){
+    state.unites.splice(i,1);
+    persist(); render();
+  }
+}
+
+function d6(){ return Math.floor(Math.random()*6)+1; }
+
+function attaque(type){
+  const a=state.unites[state.selection.attaquant];
+  const d=state.unites[state.selection.defenseur];
+  if(!a||!d) return;
+
+  let log="";
+  showDice();
+
+  for(let i=1;i<=a.attaques;i++){
+    const hit=d6()>=a[type];
+    if(!hit){ log+=`⚔️ ❌\n`; continue; }
+
+    const save=d6()>=d.save;
+    if(save){ log+=`⚔️ ✅ 🛡️\n`; continue; }
+
+    const dmg=d6()%(a.degMax-a.degMin+1)+a.degMin;
+    d.pv=Math.max(0,d.pv-dmg);
+    log+=`⚔️ ✅ 💥 -${dmg}\n`;
+  }
+
+  qs("log").textContent=log;
+  persist(); render();
+}
+
+function resetCombat(){
+  state.unites.forEach(u=>u.pv=u.pvMax);
+  persist(); render();
+}
+
+function showDice(){
+  const de=qs("de");
+  de.style.display="block";
+  de.style.transform="translate(-50%,-50%) rotate(720deg)";
+  setTimeout(()=>de.style.display="none",600);
+}
+
+qs("search").oninput=render;
+render();
