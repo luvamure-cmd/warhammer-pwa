@@ -30,11 +30,13 @@ button {
 
 /* Boutons combat plus grands pour mobile */
 button.combat-btn {
-  font-size: 20px;
-  padding: 15px 10px;
+  font-size: 22px;      /* police plus grande */
+  padding: 16px 10px;   /* plus d’espace tactile */
   border-radius: 12px;
   margin: 8px 0;
+  width: 100%;
 }
+
 
 /* ===== UNITÉS ===== */
 .liste-unites {
@@ -154,3 +156,4 @@ button.combat-btn {
   background: #555;
   border-radius: 6px;
 }
+
