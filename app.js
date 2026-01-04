@@ -17,7 +17,18 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
-const titreFormulaire = document.querySelector(".box h3");
+
+/* ========= COLLAPSIBLE ========= */
+const toggleForm = document.getElementById("toggleForm");
+const formUnite = document.getElementById("formUnite");
+
+toggleForm.addEventListener("click", () => {
+  if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
+    formUnite.style.maxHeight = "0";
+  } else {
+    formUnite.style.maxHeight = formUnite.scrollHeight + "px";
+  }
+});
 
 /* ========= ÉTAT ========= */
 let unites = [];
@@ -47,8 +58,16 @@ function renderBarrePV(u) {
 function ajouterUnite() {
   if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
+  // Crée un nom unique si copie
+  let nomUnique = nom.value;
+  let count = 1;
+  while (unites.some(u => u.nom === nomUnique)) {
+    count++;
+    nomUnique = `${nom.value} ${count}`;
+  }
+
   const u = {
-    nom: nom.value,
+    nom: nomUnique,
     image: image.value || IMAGE_DEFAUT,
     pvMax: +pv.value,
     pv: +pv.value,
@@ -62,7 +81,6 @@ function ajouterUnite() {
 
   uniteEnEdition !== null ? (unites[uniteEnEdition] = u) : unites.push(u);
   uniteEnEdition = null;
-
   sauvegarder();
   rafraichirTout();
 }
@@ -71,25 +89,6 @@ function supprimerUnite() {
   if (uniteEnEdition === null) return;
   unites.splice(uniteEnEdition, 1);
   uniteEnEdition = null;
-  sauvegarder();
-  rafraichirTout();
-}
-
-function copierUnite(i) {
-  const original = unites[i];
-  const copie = { ...original };
-
-  // Nom unique avec numéro incrémenté
-  let num = 1;
-  let baseNom = original.nom.replace(/\d+$/, "").trim();
-  let nouveauNom = `${baseNom} ${num}`;
-  while (unites.find(u => u.nom === nouveauNom)) {
-    num++;
-    nouveauNom = `${baseNom} ${num}`;
-  }
-  copie.nom = nouveauNom;
-
-  unites.push(copie);
   sauvegarder();
   rafraichirTout();
 }
@@ -114,13 +113,11 @@ function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
     listeUnites.innerHTML += `
-      <div class="carte-unite">
+      <div class="carte-unite" onclick="chargerUnite(${i})">
         <img src="${u.image}">
         <div class="nom-unite">${u.nom}</div>
         <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
-        <button style="margin-top:5px;width:50%;" onclick="copierUnite(${i})">Dupliquer</button>
-        <button style="margin-top:5px;width:50%;background:#a33;" onclick="chargerUnite(${i})">Modifier</button>
       </div>
     `;
   });
@@ -139,8 +136,8 @@ function afficherChoixCombat() {
         ${renderBarrePV(u)}
       </div>
     `;
-    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
-    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
+    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i}; afficherCombat()">${carte}</div>`;
+    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i}; afficherCombat()">${carte}</div>`;
   });
 }
 
@@ -169,55 +166,37 @@ function attaquer(type) {
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
-  // Son et vibration
-  if (navigator.vibrate) navigator.vibrate(150);
-  const audio = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
-  audio.play();
-
-  // Animation dé unique
-  const diceImg = document.createElement("img");
-  diceImg.src = "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-6.png"; // image de dé
-  diceImg.style.width = "80px";
-  diceImg.style.display = "block";
-  diceImg.style.margin = "10px auto";
-  zoneAttaquant.appendChild(diceImg);
-
-  // Animation rotation
-  diceImg.style.transition = "transform 0.8s";
-  diceImg.style.transform = "rotate(720deg)";
-  setTimeout(() => {
-    zoneAttaquant.removeChild(diceImg);
-
-    // Lancer les attaques
-    let journal = "";
-    for (let i = 0; i < a.attaques; i++) {
-      const toucheRoll = d6();
-      const touche = toucheRoll > a[type]; // touche si dé > caractéristique
-      const saveRoll = touche ? d6() : null;
-      const blesse = touche && saveRoll > d.save;
-      let degats = 0;
-      if (blesse) {
+  let journal = "";
+  for (let i = 1; i <= a.attaques; i++) {
+    const toucheJet = d6();
+    let touche = toucheJet > a[type]; // touche si dé > caractéristique
+    let sauvegarde = false;
+    let degats = 0;
+    if (touche) {
+      const saveJet = d6();
+      sauvegarde = saveJet > d.save; // échoue si dé > save
+      if (!sauvegarde) {
         degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= degats;
         d.pv = Math.max(0, d.pv);
       }
-      journal += `Attaque ${i + 1} : `;
-      journal += touche ? "Touchée" : "Ratée";
-      if (touche) {
-        journal += `, jet de sauvegarde ${saveRoll > d.save ? "raté" : "réussi"}`;
-        if (blesse) journal += ` : ${d.nom} perd ${degats} PV`;
-      }
-      journal += "\n";
     }
+    journal += `Attaque ${i} : ${touche ? "touchée" : "ratée"}, jet de sauvegarde ${touche ? (sauvegarde ? "réussi" : "raté") : "-"}, perte PV : ${degats}\n`;
+  }
 
-    resultat.innerText = journal;
-    sauvegarder();
-    rafraichirTout();
-  }, 800);
+  resultat.innerText = journal;
+  sauvegarder();
+  rafraichirTout();
+
+  // vibration mobile
+  if (navigator.vibrate) navigator.vibrate(200);
+  // son
+  const audio = new Audio("https://www.soundjay.com/button/beep-07.mp3");
+  audio.play();
 }
 
 function resetCombat() {
-  unites.forEach(u => (u.pv = u.pvMax));
+  unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
 }
@@ -233,14 +212,4 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
-
-/* ========= COLLAPSABLE FORMULAIRE ========= */
-titreFormulaire.style.cursor = "pointer";
-let collapsed = false;
-titreFormulaire.addEventListener("click", () => {
-  const box = titreFormulaire.parentElement;
-  collapsed = !collapsed;
-  box.style.height = collapsed ? "40px" : "auto";
-  box.style.overflow = collapsed ? "hidden" : "visible";
-});
 
