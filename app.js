@@ -1,129 +1,65 @@
-const $ = id => document.getElementById(id);
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Simulateur Warhammer</title>
+<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
-const IMAGE_DEFAUT = "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
-let unites = JSON.parse(localStorage.getItem("unitesWarhammer")) || [];
-let editIndex = null;
-let atk = null, def = null;
+<body>
 
-const d6 = () => Math.floor(Math.random()*6)+1;
+<h1>⚔️ Simulateur Warhammer</h1>
 
-function sauvegarder() {
-  localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
-}
+<!-- ===== CRÉATION UNITÉ ===== -->
+<section class="box">
+  <button id="toggleForm" class="toggle-btn">➕ Ajouter / Modifier une unité</button>
 
-function barrePV(u) {
-  const p = Math.max(0,u.pv/u.pvMax*100);
-  return `<div class="barre-vie"><div class="barre-vie-interne" style="width:${p}%;background:${p>50?'#3fa93f':p>25?'#e0b000':'#c0392b'}"></div></div>`;
-}
+  <div id="formUnite" class="form">
+    <input id="nom" placeholder="Nom">
+    <input id="pv" type="number" placeholder="PV">
+    <input id="save" type="number" placeholder="Save (ex: 4)">
+    <input id="cac" type="number" placeholder="Touche CAC">
+    <input id="dist" type="number" placeholder="Touche Distance">
+    <input id="attaques" type="number" placeholder="Attaques">
+    <input id="degMin" type="number" placeholder="Dégâts min">
+    <input id="degMax" type="number" placeholder="Dégâts max">
 
-function ajouterUnite() {
-  const u = {
-    nom:nom.value,
-    faction:faction.value,
-    type:type.value,
-    pvMax:+pv.value,
-    pv:+pv.value,
-    image:image.value||IMAGE_DEFAUT,
-    attaques:+attaquesUnite.value,
-    cac:+cac.value,
-    dist:+dist.value,
-    save:+save.value,
-    degMin:+degMin.value,
-    degMax:+degMax.value
-  };
-  editIndex!==null ? unites[editIndex]=u : unites.push(u);
-  editIndex=null;
-  sauvegarder(); render();
-}
+    <input id="photo" type="file" accept="image/*">
 
-function render() {
-  renderUnites();
-  renderCombatList();
-}
+    <button id="btnSave">💾 Sauvegarder</button>
+  </div>
+</section>
 
-function renderUnites() {
-  listeUnites.innerHTML="";
-  filtrer().forEach((u,i)=>{
-    listeUnites.innerHTML+=`
-    <div class="carte-unite">
-      <img src="${u.image}">
-      <b>${u.nom}</b>
-      ${barrePV(u)}
-      <button onclick="dupliquer(${i})">📄</button>
-      <button onclick="supprimer(${i})">🗑️</button>
-    </div>`;
-  });
-}
+<!-- ===== RECHERCHE ===== -->
+<section class="box">
+  <input id="search" placeholder="🔍 Rechercher une unité">
+</section>
 
-function dupliquer(i){
-  const base=unites[i];
-  let n=1, nom=base.nom;
-  while(unites.some(u=>u.nom===nom)) nom=`${base.nom} ${++n}`;
-  unites.push({...base,nom});
-  sauvegarder(); render();
-}
+<!-- ===== LISTE UNITÉS ===== -->
+<section class="box">
+  <div id="listeUnites" class="grid"></div>
+</section>
 
-function supprimer(i){
-  if(confirm("Supprimer cette unité ?")){
-    unites.splice(i,1);
-    sauvegarder(); render();
-  }
-}
+<!-- ===== COMBAT ===== -->
+<section class="box combat">
+  <h2>⚔️ Combat</h2>
 
-function filtrer(){
-  const s=searchInput.value.toLowerCase();
-  return unites.filter(u=>
-    (!s||u.nom.toLowerCase().includes(s)) &&
-    (!filterFaction.value||u.faction.includes(filterFaction.value)) &&
-    (!filterType.value||u.type.includes(filterType.value))
-  );
-}
+  <div class="zones">
+    <div id="attaquant" class="zone">Attaquant</div>
+    <div id="defenseur" class="zone">Défenseur</div>
+  </div>
 
-function renderCombatList(){
-  listeAttaquants.innerHTML="";
-  listeDefenseurs.innerHTML="";
-  filtrer().forEach((u,i)=>{
-    const card=`<div class="carte-unite"><img src="${u.image}"><b>${u.nom}</b></div>`;
-    listeAttaquants.innerHTML+=`<div onclick="atk=${i};affCombat()">${card}</div>`;
-    listeDefenseurs.innerHTML+=`<div onclick="def=${i};affCombat()">${card}</div>`;
-  });
-}
+  <button class="big" onclick="attaque('cac')">⚔️ CAC</button>
+  <button class="big" onclick="attaque('dist')">🏹 Distance</button>
+  <button class="big danger" onclick="resetCombat()">🔄 Reset</button>
 
-function affCombat(){
-  if(atk==null||def==null)return;
-  zoneAttaquant.innerHTML=`<img src="${unites[atk].image}"><b>${unites[atk].nom}</b>`;
-  zoneDefenseur.innerHTML=`<img src="${unites[def].image}"><b>${unites[def].nom}</b>`;
-}
+  <pre id="log"></pre>
+</section>
 
-function attaquer(type){
-  if(atk==null||def==null)return;
-  const a=unites[atk], d=unites[def];
-  let log="";
-  de-animation.style.display="block";
-  setTimeout(()=>de-animation.style.display="none",600);
+<!-- ===== ANIMATION DÉ ===== -->
+<img id="de" src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png">
 
-  for(let i=1;i<=a.attaques;i++){
-    const t=d6(), s=d6(), dmg=d6()>=a.degMin?d6():0;
-    const hit=t>=a[type], save=s>=d.save;
-    if(hit&&!save)d.pv=Math.max(0,d.pv-dmg);
-    log+=`⚔️ ${hit?"✅":"❌"} 🛡️ ${save?"✅":"❌"} 💥 ${hit&&!save?dmg:0}\n`;
-  }
-  resultat.textContent=log;
-  sauvegarder(); render();
-}
-
-function resetCombat(){
-  unites.forEach(u=>u.pv=u.pvMax);
-  sauvegarder(); render();
-}
-
-toggleForm.onclick=()=>{
-  const c=formUnite;
-  c.style.maxHeight=c.style.maxHeight?null:c.scrollHeight+"px";
-};
-
-searchInput.oninput=render;
-filterFaction.oninput=render;
-filterType.oninput=render;
-
-render();
+<script src="app.js"></script>
+</body>
+</html>
