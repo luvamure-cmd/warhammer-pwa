@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Simulateur Warhammer</title>
+
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
@@ -13,9 +14,9 @@
 <h2>⚔️ Simulateur Warhammer</h2>
 
 <!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
-<div class="box" id="boxUnites">
-  <h3 id="toggleUnites" style="cursor:pointer;">➕ Ajouter / Modifier une unité ▼</h3>
-  <div id="formUnites">
+<div class="box">
+  <h3 id="toggleForm" class="collapsible">➕ Ajouter / Modifier une unité</h3>
+  <div id="formUnite" class="collapsible-content">
     <input id="nom" placeholder="Nom de l'unité">
     <input id="pv" type="number" placeholder="PV">
     <input id="image" placeholder="URL de l'image">
@@ -43,14 +44,13 @@
     <div id="zoneDefenseur" class="zone-combat"></div>
   </div>
 
-  <div id="resultat" class="resultat-combat" style="white-space: pre-line; max-height: 300px; overflow-y: auto;"></div>
+  <div id="resultatCombat" class="resultat-combat"></div>
 
   <div class="choix-combat">
     <div>
       <h4>🗡 Attaquant</h4>
       <div id="listeAttaquants" class="liste-unites"></div>
     </div>
-
     <div>
       <h4>🛡 Défenseur</h4>
       <div id="listeDefenseurs" class="liste-unites"></div>
@@ -60,6 +60,12 @@
   <button onclick="attaquer('cac')">Attaque CAC</button>
   <button onclick="attaquer('dist')">Attaque Distance</button>
   <button onclick="resetCombat()">Reset combat</button>
+</div>
+
+<!-- ================= RÉSULTAT ================= -->
+<div class="box">
+  <h3>📊 Résultat</h3>
+  <p id="resultat">Aucune action</p>
 </div>
 
 <script src="app.js"></script>
