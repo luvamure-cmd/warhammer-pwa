@@ -18,17 +18,6 @@ const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
 
-/* ========= COLLAPSIBLE ========= */
-const toggleForm = document.getElementById("toggleForm");
-const formUnite = document.getElementById("formUnite");
-toggleForm.addEventListener("click", () => {
-  if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
-    formUnite.style.maxHeight = "0";
-  } else {
-    formUnite.style.maxHeight = formUnite.scrollHeight + "px";
-  }
-});
-
 /* ========= ÉTAT ========= */
 let unites = [];
 let uniteEnEdition = null;
@@ -57,16 +46,8 @@ function renderBarrePV(u) {
 function ajouterUnite() {
   if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
-  // Crée un nom unique si copie
-  let nomUnique = nom.value;
-  let count = 1;
-  while (unites.some(u => u.nom === nomUnique)) {
-    count++;
-    nomUnique = `${nom.value} ${count}`;
-  }
-
   const u = {
-    nom: nomUnique,
+    nom: nom.value,
     image: image.value || IMAGE_DEFAUT,
     pvMax: +pv.value,
     pv: +pv.value,
@@ -117,8 +98,7 @@ function afficherUnites() {
         <div class="nom-unite">${u.nom}</div>
         <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
-      </div>
-    `;
+      </div>`;
   });
 }
 
@@ -133,8 +113,8 @@ function afficherChoixCombat() {
         <div class="nom-unite">${u.nom}</div>
         <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
-      </div>
-    `;
+      </div>`;
+
     listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i}; afficherCombat()">${carte}</div>`;
     listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i}; afficherCombat()">${carte}</div>`;
   });
@@ -142,7 +122,6 @@ function afficherChoixCombat() {
 
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
-
   zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
   zoneDefenseur.innerHTML = renderCombat(unites[indexDefenseur]);
 }
@@ -157,7 +136,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT AVEC ANIMATION DÉ UNIQUE ========= */
+/* ========= COMBAT AVEC EMOJIS ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -165,68 +144,49 @@ function attaquer(type) {
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
-  // Création ou réutilisation de l'image du dé
-  let diceImg = document.getElementById("diceAnim");
-  if (!diceImg) {
-    diceImg = document.createElement("img");
-    diceImg.id = "diceAnim";
-    diceImg.style.width = "80px";
-    diceImg.style.height = "80px";
-    diceImg.style.display = "block";
-    diceImg.style.margin = "10px auto";
-    document.body.insertBefore(diceImg, resultat);
-  }
-
-  // Animation simple : tourner le dé pendant 1s
-  let start = Date.now();
-  const duration = 1000; // 1s
-  const anim = setInterval(() => {
-    const elapsed = Date.now() - start;
-    if (elapsed >= duration) {
-      clearInterval(anim);
-      const diceValue = d6();
-      diceImg.src = `https://upload.wikimedia.org/wikipedia/commons/${["","1","2","3","4","5","6"].map(n=>`f/f5/Dice-${n}.svg`)[diceValue]}`; // remplace par lien de dé 1-6 correct si besoin
-      effectuerAttaques(a, d, type, diceValue);
-      return;
-    }
-    // Rotation aléatoire
-    const randFace = Math.floor(Math.random() * 6) + 1;
-    diceImg.src = `https://upload.wikimedia.org/wikipedia/commons/f/f5/Dice-${randFace}.svg`;
-  }, 50);
-
-  // vibration + son
-  if (navigator.vibrate) navigator.vibrate(300);
-  const audio = new Audio("https://www.soundjay.com/button/beep-07.mp3");
-  audio.play();
-}
-
-// Exécute toutes les attaques après animation du dé
-function effectuerAttaques(a, d, type, diceValue) {
   let journal = "";
+  const emojiAttaque = "⚔️";
+  const emojiTouche = "✅";
+  const emojiRate = "❌";
+  const emojiSave = "🛡️";
+  const emojiBlesse = "💥";
+
+  // Tir unique du dé pour toutes les attaques
+  const diceValue = d6();
+
   for (let i = 1; i <= a.attaques; i++) {
-    const toucheJet = diceValue; // on utilise le même pour toutes les attaques
-    let touche = toucheJet > a[type]; 
+    let touche = diceValue > a[type];
     let sauvegarde = false;
     let degats = 0;
+    let texteTouche = touche ? emojiTouche : emojiRate;
+    let texteSave = "-";
+
     if (touche) {
       const saveJet = d6();
       sauvegarde = saveJet > d.save;
+      texteSave = sauvegarde ? emojiSave : emojiBlesse;
       if (!sauvegarde) {
         degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= degats;
         d.pv = Math.max(0, d.pv);
       }
     }
-    journal += `Attaque ${i} : ${touche ? "touchée" : "ratée"}, jet de sauvegarde ${touche ? (sauvegarde ? "réussi" : "raté") : "-"}, perte PV : ${degats}\n`;
+
+    journal += `${emojiAttaque} Attaque ${i} : ${texteTouche}, sauvegarde : ${texteSave}, PV perdus : ${degats} ${emojiBlesse}\n`;
   }
+
   resultat.innerText = journal;
   sauvegarder();
   rafraichirTout();
+
+  // Vibration et son
+  if (navigator.vibrate) navigator.vibrate(200);
+  const audio = new Audio("https://freesound.org/data/previews/341/341695_62476-lq.mp3");
+  audio.play();
 }
 
-/* ========= RESET ========= */
 function resetCombat() {
-  unites.forEach(u => u.pv = u.pvMax);
+  unites.forEach(u => (u.pv = u.pvMax));
   sauvegarder();
   rafraichirTout();
 }
