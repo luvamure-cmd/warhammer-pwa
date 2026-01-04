@@ -189,27 +189,46 @@ function afficherUnites() {
       ${renderBarrePV(u)}
     `;
 
-    const btnModif = document.createElement("button");
-    btnModif.textContent = "✏️ Modifier";
-    btnModif.onclick = e => {
-      e.stopPropagation();
-      chargerUnite(i);
-    };
-
-    const btnDup = document.createElement("button");
-    btnDup.textContent = "📄 Dupliquer";
-    btnDup.onclick = e => {
+    /* ==== BOUTON DUPLIQUER ==== */
+    const btnDupliquer = document.createElement("button");
+    btnDupliquer.textContent = "📄 Dupliquer";
+    btnDupliquer.onclick = (e) => {
       e.stopPropagation();
       dupliquerUnite(i);
     };
 
-    carte.appendChild(btnModif);
-    carte.appendChild(btnDup);
-    carte.onclick = () => chargerUnite(i);
+    /* ==== BOUTON SUPPRIMER ==== */
+    const btnSupprimer = document.createElement("button");
+    btnSupprimer.textContent = "🗑 Supprimer";
+    btnSupprimer.style.background = "#a33";
+
+    btnSupprimer.onclick = (e) => {
+      e.stopPropagation();
+      const ok = confirm(`Supprimer définitivement l'unité "${u.nom}" ?`);
+      if (!ok) return;
+
+      unites.splice(i, 1);
+      uniteEnEdition = null;
+      sauvegarder();
+      rafraichirTout();
+    };
+
+    /* ==== CLIC SUR CARTE = MODIFIER ==== */
+    carte.onclick = () => {
+      chargerUnite(i);
+
+      // ouvrir automatiquement le formulaire
+      const form = document.getElementById("formUnite");
+      form.style.maxHeight = form.scrollHeight + "px";
+    };
+
+    carte.appendChild(btnDupliquer);
+    carte.appendChild(btnSupprimer);
 
     listeUnites.appendChild(carte);
   });
 }
+
 
 /* ========= CHOIX COMBAT ========= */
 function afficherChoixCombat() {
@@ -311,4 +330,5 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
 
