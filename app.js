@@ -108,17 +108,45 @@ function dupliquerUnite(i) {
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
-    listeUnites.innerHTML += `
-      <div class="carte-unite">
-        <img src="${u.image}">
-        <div class="nom-unite">${u.nom}</div>
-        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-        ${renderBarrePV(u)}
-        <button onclick="chargerUnite(${i})">✏️ Modifier</button>
-        <button onclick="dupliquerUnite(${i})">📄 Dupliquer</button>
-      </div>`;
+    const carte = document.createElement("div");
+    carte.className = "carte-unite";
+
+    // Image et info
+    carte.innerHTML = `
+      <img src="${u.image}">
+      <div class="nom-unite">${u.nom}</div>
+      <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+      ${renderBarrePV(u)}
+    `;
+
+    // Bouton Modifier
+    const btnModifier = document.createElement("button");
+    btnModifier.textContent = "✏️ Modifier";
+    btnModifier.onclick = (e) => {
+      e.stopPropagation(); // Empêche de déclencher le clic sur la carte
+      chargerUnite(i);
+      // Optionnel : ouvrir automatiquement le formulaire
+      const form = document.getElementById("formUnite");
+      form.style.maxHeight = form.scrollHeight + "px";
+    };
+    carte.appendChild(btnModifier);
+
+    // Bouton Dupliquer
+    const btnDupliquer = document.createElement("button");
+    btnDupliquer.textContent = "📄 Dupliquer";
+    btnDupliquer.onclick = (e) => {
+      e.stopPropagation();
+      dupliquerUnite(i);
+    };
+    carte.appendChild(btnDupliquer);
+
+    // Clic sur la carte pour sélectionner
+    carte.onclick = () => chargerUnite(i);
+
+    listeUnites.appendChild(carte);
   });
 }
+
 
 function afficherChoixCombat() {
   listeAttaquants.innerHTML = "";
@@ -219,3 +247,4 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
