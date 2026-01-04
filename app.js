@@ -1,4 +1,4 @@
-/* ================= DOM ================= */
+/* ========= DOM ========= */
 const nom = document.getElementById("nom");
 const pv = document.getElementById("pv");
 const image = document.getElementById("image");
@@ -17,9 +17,9 @@ const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
-const resultatCombat = document.getElementById("resultatCombat");
+const titreFormulaire = document.querySelector(".box h3");
 
-/* ================= ÉTAT ================= */
+/* ========= ÉTAT ========= */
 let unites = [];
 let uniteEnEdition = null;
 let indexAttaquant = null;
@@ -28,32 +28,24 @@ let indexDefenseur = null;
 const IMAGE_DEFAUT =
   "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
-/* ================= UTILITAIRES ================= */
+/* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
-/* ================= STORAGE ================= */
+/* ========= STORAGE ========= */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
 }
 
-/* ================= BARRE PV ================= */
+/* ========= BARRE PV ========= */
 function renderBarrePV(u) {
   const pct = Math.max(0, (u.pv / u.pvMax) * 100);
   const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
-
-  return `
-    <div class="barre-vie">
-      <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
-    </div>
-  `;
+  return `<div class="barre-vie"><div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div></div>`;
 }
 
-/* ================= UNITÉS ================= */
+/* ========= UNITÉS ========= */
 function ajouterUnite() {
-  if (!nom.value || !pv.value) {
-    alert("Nom et PV requis");
-    return;
-  }
+  if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
   const u = {
     nom: nom.value,
@@ -68,13 +60,9 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  if (uniteEnEdition !== null) {
-    unites[uniteEnEdition] = u;
-  } else {
-    unites.push(u);
-  }
-
+  uniteEnEdition !== null ? (unites[uniteEnEdition] = u) : unites.push(u);
   uniteEnEdition = null;
+
   sauvegarder();
   rafraichirTout();
 }
@@ -87,21 +75,19 @@ function supprimerUnite() {
   rafraichirTout();
 }
 
-function copierUnite(index) {
-  const original = unites[index];
-  const baseNom = original.nom.replace(/\s*\(\d+\)$/, "");
+function copierUnite(i) {
+  const original = unites[i];
+  const copie = { ...original };
 
-  let maxNumero = 1;
-  unites.forEach(u => {
-    const match = u.nom.match(new RegExp(`^${baseNom}\\s*\\((\\d+)\\)$`));
-    if (match) maxNumero = Math.max(maxNumero, parseInt(match[1], 10));
-  });
-
-  const copie = {
-    ...original,
-    nom: `${baseNom} (${maxNumero + 1})`,
-    pv: original.pvMax
-  };
+  // Nom unique avec numéro incrémenté
+  let num = 1;
+  let baseNom = original.nom.replace(/\d+$/, "").trim();
+  let nouveauNom = `${baseNom} ${num}`;
+  while (unites.find(u => u.nom === nouveauNom)) {
+    num++;
+    nouveauNom = `${baseNom} ${num}`;
+  }
+  copie.nom = nouveauNom;
 
   unites.push(copie);
   sauvegarder();
@@ -123,25 +109,18 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ================= AFFICHAGES ================= */
-function renderCarte(u, i, onClick) {
-  return `
-    <div class="carte-unite" onclick="${onClick}">
-      <img src="${u.image}">
-      <div class="nom-unite">${u.nom}</div>
-      <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-      ${renderBarrePV(u)}
-    </div>
-  `;
-}
-
+/* ========= AFFICHAGES ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
     listeUnites.innerHTML += `
-      <div>
-        ${renderCarte(u, i, `chargerUnite(${i})`)}
-        <button onclick="copierUnite(${i})">Dupliquer</button>
+      <div class="carte-unite">
+        <img src="${u.image}">
+        <div class="nom-unite">${u.nom}</div>
+        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+        ${renderBarrePV(u)}
+        <button style="margin-top:5px;width:90%;" onclick="copierUnite(${i})">Dupliquer</button>
+        <button style="margin-top:5px;width:90%;background:#a33;" onclick="chargerUnite(${i})">Modifier</button>
       </div>
     `;
   });
@@ -152,8 +131,16 @@ function afficherChoixCombat() {
   listeDefenseurs.innerHTML = "";
 
   unites.forEach((u, i) => {
-    listeAttaquants.innerHTML += renderCarte(u, i, `indexAttaquant=${i};afficherCombat()`);
-    listeDefenseurs.innerHTML += renderCarte(u, i, `indexDefenseur=${i};afficherCombat()`);
+    const carte = `
+      <div class="carte-unite">
+        <img src="${u.image}">
+        <div class="nom-unite">${u.nom}</div>
+        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+        ${renderBarrePV(u)}
+      </div>
+    `;
+    listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
+    listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
   });
 }
 
@@ -174,7 +161,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ================= COMBAT ================= */
+/* ========= COMBAT ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -182,36 +169,51 @@ function attaquer(type) {
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
-  let journal = "";
-  let totalDegats = 0;
+  // Son et vibration
+  if (navigator.vibrate) navigator.vibrate(150);
+  const audio = new Audio("https://www.soundjay.com/button/sounds/button-16.mp3");
+  audio.play();
 
-  // vibration + son
-  if (navigator.vibrate) navigator.vibrate(100);
-  new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_5c6e3e36fa.mp3").play();
+  // Animation dé unique
+  const diceImg = document.createElement("img");
+  diceImg.src = "https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-6.png"; // image de dé
+  diceImg.style.width = "80px";
+  diceImg.style.display = "block";
+  diceImg.style.margin = "10px auto";
+  zoneAttaquant.appendChild(diceImg);
 
-  for (let i = 1; i <= a.attaques; i++) {
-    const jetTouche = d6();
-    if (jetTouche > (type === "cac" ? a.cac : a.dist)) {
-      const jetSave = d6();
-      if (jetSave <= d.save) {
-        const dmg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-        d.pv -= dmg;
-        totalDegats += dmg;
-        journal += `Attaque ${i} : touchée, sauvegarde ratée → ${dmg} dégâts<br>`;
-      } else {
-        journal += `Attaque ${i} : touchée, sauvegarde réussie<br>`;
+  // Animation rotation
+  diceImg.style.transition = "transform 0.8s";
+  diceImg.style.transform = "rotate(720deg)";
+  setTimeout(() => {
+    zoneAttaquant.removeChild(diceImg);
+
+    // Lancer les attaques
+    let journal = "";
+    for (let i = 0; i < a.attaques; i++) {
+      const toucheRoll = d6();
+      const touche = toucheRoll > a[type]; // touche si dé > caractéristique
+      const saveRoll = touche ? d6() : null;
+      const blesse = touche && saveRoll > d.save;
+      let degats = 0;
+      if (blesse) {
+        degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+        d.pv -= degats;
+        d.pv = Math.max(0, d.pv);
       }
-    } else {
-      journal += `Attaque ${i} : ratée<br>`;
+      journal += `Attaque ${i + 1} : `;
+      journal += touche ? "Touchée" : "Ratée";
+      if (touche) {
+        journal += `, jet de sauvegarde ${saveRoll > d.save ? "raté" : "réussi"}`;
+        if (blesse) journal += ` : ${d.nom} perd ${degats} PV`;
+      }
+      journal += "\n";
     }
-  }
 
-  d.pv = Math.max(0, d.pv);
-  resultat.innerHTML = `${a.nom} inflige ${totalDegats} dégâts à ${d.nom}`;
-  resultatCombat.innerHTML = journal;
-
-  sauvegarder();
-  rafraichirTout();
+    resultat.innerText = journal;
+    sauvegarder();
+    rafraichirTout();
+  }, 800);
 }
 
 function resetCombat() {
@@ -220,14 +222,24 @@ function resetCombat() {
   rafraichirTout();
 }
 
-/* ================= GLOBAL ================= */
+/* ========= GLOBAL ========= */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
   afficherCombat();
 }
 
-/* ================= INIT ================= */
+/* ========= INIT ========= */
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
+/* ========= COLLAPSABLE FORMULAIRE ========= */
+titreFormulaire.style.cursor = "pointer";
+let collapsed = false;
+titreFormulaire.addEventListener("click", () => {
+  const box = titreFormulaire.parentElement;
+  collapsed = !collapsed;
+  box.style.height = collapsed ? "40px" : "auto";
+  box.style.overflow = collapsed ? "hidden" : "visible";
+});
