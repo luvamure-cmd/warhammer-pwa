@@ -28,13 +28,18 @@ let animationEnCours = false;
 const IMAGE_DEFAUT =
   "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
+/* ===================== AUDIO ===================== */
+const sonDe = new Audio(
+  "https://cdn.pixabay.com/download/audio/2022/03/15/audio_3a2d4c8c58.mp3"
+);
+sonDe.volume = 0.7;
+
 /* ===================== OUTILS ===================== */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
-/* ===================== DÉ UNIQUE ===================== */
+/* ===================== DÉ VISUEL ===================== */
 const de = document.createElement("img");
 de.src = "https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png";
-de.id = "de-animation";
 document.body.appendChild(de);
 
 de.style.position = "fixed";
@@ -55,8 +60,19 @@ style.textContent = `
 }`;
 document.head.appendChild(style);
 
+/* ===================== ANIMATION DÉ ===================== */
 function lancerAnimationDe() {
   return new Promise(resolve => {
+    // 🔊 Son
+    sonDe.currentTime = 0;
+    sonDe.play().catch(() => {});
+
+    // 📳 Vibration mobile
+    if (navigator.vibrate) {
+      navigator.vibrate(200);
+    }
+
+    // 🎲 Animation visuelle
     de.style.display = "block";
     de.style.animation = "roll 1s linear";
 
@@ -178,7 +194,6 @@ function afficherChoixCombat() {
 
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
-
   zoneAttaquant.innerHTML = renderCombat(unites[indexAttaquant]);
   zoneDefenseur.innerHTML = renderCombat(unites[indexDefenseur]);
 }
@@ -199,8 +214,9 @@ async function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
   animationEnCours = true;
+  resultat.innerHTML = "";
 
-  await lancerAnimationDe(); // 🎲 UNE SEULE FOIS
+  await lancerAnimationDe(); // 🔊 📳 🎲 UNE FOIS
 
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
@@ -208,9 +224,9 @@ async function attaquer(type) {
 
   for (let i = 1; i <= a.attaques && d.pv > 0; i++) {
     const jetTouche = d6();
-    const seuilTouche = type === "cac" ? a.cac : a.dist;
+    const seuil = type === "cac" ? a.cac : a.dist;
 
-    if (jetTouche > seuilTouche) {
+    if (jetTouche > seuil) {
       const jetSave = d6();
       if (jetSave > d.save) {
         const deg =
@@ -232,8 +248,9 @@ async function attaquer(type) {
   animationEnCours = false;
 }
 
+/* ===================== RESET ===================== */
 function resetCombat() {
-  unites.forEach(u => u.pv = u.pvMax);
+  unites.forEach(u => (u.pv = u.pvMax));
   sauvegarder();
   rafraichirTout();
 }
