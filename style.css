@@ -172,3 +172,16 @@ button.combat-btn {
   border-radius: 6px;
 }
 
+.carte-unite button {
+  display: block;
+  width: 90%;
+  margin: 6px auto 0;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.carte-unite button:last-child {
+  background: #a33;
+}
+
