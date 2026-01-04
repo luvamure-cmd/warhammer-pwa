@@ -50,6 +50,7 @@ button.combat-btn {
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
+  position: relative;
 }
 
 .carte-unite img {
@@ -154,5 +155,3 @@ button.combat-btn {
   border: none;
   border-radius: 6px;
 }
-
-
