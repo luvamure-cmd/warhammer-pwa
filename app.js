@@ -45,13 +45,39 @@ if (photoUnite) {
     const file = photoUnite.files[0];
     if (!file) return;
 
+    const img = new Image();
     const reader = new FileReader();
-    reader.onload = () => {
-      imageTemporaire = reader.result; // base64
+
+    reader.onload = e => {
+      img.onload = () => {
+        const MAX = 256;
+        let w = img.width;
+        let h = img.height;
+
+        if (w > h && w > MAX) {
+          h = h * (MAX / w);
+          w = MAX;
+        } else if (h > MAX) {
+          w = w * (MAX / h);
+          h = MAX;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+
+        imageTemporaire = canvas.toDataURL("image/jpeg", 0.6);
+      };
+      img.src = e.target.result;
     };
+
     reader.readAsDataURL(file);
   });
 }
+
 
 /* ========= BARRE PV ========= */
 function renderBarrePV(u) {
@@ -285,3 +311,4 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
