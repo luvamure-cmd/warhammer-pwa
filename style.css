@@ -141,3 +141,11 @@ button {
   to   { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
+
+.carte-unite button {
+  margin-top: 6px;
+  padding: 6px;
+  font-size: 12px;
+  background: #555;
+  border-radius: 6px;
+}
