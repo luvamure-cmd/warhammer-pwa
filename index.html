@@ -5,61 +5,76 @@
 <title>Simulateur Warhammer</title>
 <link rel="stylesheet" href="style.css">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111111">
 </head>
-
 <body>
 
-<h1>⚔️ Simulateur Warhammer</h1>
+<h2>⚔️ Simulateur Warhammer</h2>
 
-<!-- ===== CRÉATION UNITÉ ===== -->
-<section class="box">
-  <button id="toggleForm" class="toggle-btn">➕ Ajouter / Modifier une unité</button>
-
-  <div id="formUnite" class="form">
-    <input id="nom" placeholder="Nom">
+<!-- ================= AJOUT / ÉDITION UNITÉ ================= -->
+<div class="box">
+  <h3 id="toggleForm" class="collapsible">➕ Ajouter / Modifier une unité</h3>
+  <div id="formUnite" class="collapsible-content">
+    <input id="nom" placeholder="Nom de l'unité">
     <input id="pv" type="number" placeholder="PV">
-    <input id="save" type="number" placeholder="Save (ex: 4)">
-    <input id="cac" type="number" placeholder="Touche CAC">
-    <input id="dist" type="number" placeholder="Touche Distance">
-    <input id="attaques" type="number" placeholder="Attaques">
+    <input id="image" placeholder="URL de l'image">
+    <input type="file" id="photoUnite" accept="image/*" capture="environment">
+    <input id="save" type="number" placeholder="Sauvegarde (1-6)">
+    <input id="cac" type="number" placeholder="Touche CAC (1-6)">
+    <input id="dist" type="number" placeholder="Touche Distance (1-6)">
+    <input id="attaquesUnite" type="number" placeholder="Attaques">
     <input id="degMin" type="number" placeholder="Dégâts min">
     <input id="degMax" type="number" placeholder="Dégâts max">
 
-    <input id="photo" type="file" accept="image/*">
+    <button onclick="ajouterUnite()">Ajouter / Modifier</button>
+    <button onclick="supprimerUnite()" style="background:#a33">Supprimer</button>
 
-    <button id="btnSave">💾 Sauvegarder</button>
+    <h4>📦 Unités créées</h4>
+    <div id="listeUnites" class="liste-unites"></div>
   </div>
-</section>
+</div>
 
-<!-- ===== RECHERCHE ===== -->
-<section class="box">
-  <input id="search" placeholder="🔍 Rechercher une unité">
-</section>
+<!-- ================= COMBAT ================= -->
+<div class="box">
+  <h3>⚔️ Combat</h3>
 
-<!-- ===== LISTE UNITÉS ===== -->
-<section class="box">
-  <div id="listeUnites" class="grid"></div>
-</section>
-
-<!-- ===== COMBAT ===== -->
-<section class="box combat">
-  <h2>⚔️ Combat</h2>
-
-  <div class="zones">
-    <div id="attaquant" class="zone">Attaquant</div>
-    <div id="defenseur" class="zone">Défenseur</div>
+  <div class="combat-ligne">
+    <div id="zoneAttaquant" class="zone-combat"></div>
+    <div id="zoneDefenseur" class="zone-combat"></div>
   </div>
 
-  <button class="big" onclick="attaque('cac')">⚔️ CAC</button>
-  <button class="big" onclick="attaque('dist')">🏹 Distance</button>
-  <button class="big danger" onclick="resetCombat()">🔄 Reset</button>
+  <div id="resultatCombat" class="resultat-combat"></div>
 
-  <pre id="log"></pre>
-</section>
+  <div class="choix-combat">
+    <div>
+      <h4>🗡 Attaquant</h4>
+      <div id="listeAttaquants" class="liste-unites"></div>
+    </div>
+    <div>
+      <h4>🛡 Défenseur</h4>
+      <div id="listeDefenseurs" class="liste-unites"></div>
+    </div>
+  </div>
 
-<!-- ===== ANIMATION DÉ ===== -->
-<img id="de" src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png">
+  <button class="combat-btn" onclick="attaquer('cac')">⚔️</button>
+  <button class="combat-btn" onclick="attaquer('dist')">🏹</button>
+  <button class="combat-btn" onclick="resetCombat()">🔄</button>
+</div>
+
+<!-- ================= RÉSULTAT ================= -->
+<div class="box">
+  <h3>📊 Résultat</h3>
+  <p id="resultat">Aucune action</p>
+</div>
 
 <script src="app.js"></script>
+<img
+  id="de-animation"
+  src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Dice-6-b.svg"
+  alt="Dé"
+/>
+
 </body>
 </html>
+
+
