@@ -39,9 +39,10 @@ function sauvegarder() {
 /* ========= ANIMATION DÉ ========= */
 function lancerAnimationDe() {
   if (!deAnim) return;
-  deAnim.classList.remove("active");
-  void deAnim.offsetWidth; // reset
-  deAnim.classList.add("active");
+  deAnim.style.display = "block";
+  deAnim.classList.remove("roll");
+  void deAnim.offsetWidth;
+  deAnim.classList.add("roll");
 
   if (navigator.vibrate) navigator.vibrate(80);
 
@@ -50,6 +51,8 @@ function lancerAnimationDe() {
   );
   audio.volume = 0.4;
   audio.play();
+
+  setTimeout(() => (deAnim.style.display = "none"), 800);
 }
 
 /* ========= BARRE PV ========= */
@@ -65,7 +68,10 @@ function renderBarrePV(u) {
 
 /* ========= UNITÉS ========= */
 function ajouterUnite() {
-  if (!nom.value || !pv.value) return alert("Nom et PV requis");
+  if (!nom.value || !pv.value) {
+    alert("Nom et PV requis");
+    return;
+  }
 
   const u = {
     nom: nom.value,
@@ -80,7 +86,11 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  uniteEnEdition !== null ? (unites[uniteEnEdition] = u) : unites.push(u);
+  if (uniteEnEdition !== null) {
+    unites[uniteEnEdition] = u;
+  } else {
+    unites.push(u);
+  }
 
   uniteEnEdition = null;
   sauvegarder();
@@ -88,8 +98,18 @@ function ajouterUnite() {
 }
 
 function supprimerUnite(i) {
-  if (!confirm(`Supprimer l'unité "${unites[i].nom}" ?`)) return;
+  if (!confirm(`Supprimer "${unites[i].nom}" ?`)) return;
   unites.splice(i, 1);
+  sauvegarder();
+  rafraichirTout();
+}
+
+function dupliquerUnite(i) {
+  const base = unites[i];
+  let n = 1;
+  let nomUnique = `${base.nom} ${n}`;
+  while (unites.some(u => u.nom === nomUnique)) n++;
+  unites.push({ ...base, nom: `${base.nom} ${n}` });
   sauvegarder();
   rafraichirTout();
 }
@@ -97,7 +117,6 @@ function supprimerUnite(i) {
 function chargerUnite(i) {
   const u = unites[i];
   uniteEnEdition = i;
-
   nom.value = u.nom;
   image.value = u.image;
   pv.value = u.pvMax;
@@ -109,73 +128,33 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= DUPLICATION ========= */
-function dupliquerUnite(i) {
-  const base = unites[i];
-  let n = 1;
-  let nouveauNom = `${base.nom} ${n}`;
-
-  while (unites.some(u => u.nom === nouveauNom)) {
-    n++;
-    nouveauNom = `${base.nom} ${n}`;
-  }
-
-  unites.push({ ...base, nom: nouveauNom });
-  sauvegarder();
-  rafraichirTout();
-}
-
-/* ========= AFFICHAGE UNITÉS ========= */
+/* ========= AFFICHAGES ========= */
 function afficherUnites() {
   listeUnites.innerHTML = "";
-
   unites.forEach((u, i) => {
-    const carte = document.createElement("div");
-    carte.className = "carte-unite";
-    carte.innerHTML = `
-      <img src="${u.image}">
-      <div class="nom-unite">${u.nom}</div>
-      <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
-      ${renderBarrePV(u)}
+    listeUnites.innerHTML += `
+      <div class="carte-unite" onclick="chargerUnite(${i})">
+        <img src="${u.image}">
+        <div class="nom-unite">${u.nom}</div>
+        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
+        ${renderBarrePV(u)}
+        <button onclick="event.stopPropagation(); dupliquerUnite(${i})">📄 Dupliquer</button>
+        <button onclick="event.stopPropagation(); supprimerUnite(${i})">🗑️ Supprimer</button>
+      </div>
     `;
-
-    const btnSupprimer = document.createElement("button");
-    btnSupprimer.textContent = "🗑️ Supprimer";
-    btnSupprimer.onclick = e => {
-      e.stopPropagation();
-      supprimerUnite(i);
-    };
-
-    const btnDupliquer = document.createElement("button");
-    btnDupliquer.textContent = "📄 Dupliquer";
-    btnDupliquer.onclick = e => {
-      e.stopPropagation();
-      dupliquerUnite(i);
-    };
-
-    carte.appendChild(btnDupliquer);
-    carte.appendChild(btnSupprimer);
-
-    carte.onclick = () => chargerUnite(i);
-
-    listeUnites.appendChild(carte);
   });
 }
 
-/* ========= COMBAT ========= */
 function afficherChoixCombat() {
   listeAttaquants.innerHTML = "";
   listeDefenseurs.innerHTML = "";
-
   unites.forEach((u, i) => {
     const carte = `
       <div class="carte-unite">
         <img src="${u.image}">
         <div class="nom-unite">${u.nom}</div>
-        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
-      </div>
-    `;
+      </div>`;
     listeAttaquants.innerHTML += `<div onclick="indexAttaquant=${i}; afficherCombat()">${carte}</div>`;
     listeDefenseurs.innerHTML += `<div onclick="indexDefenseur=${i}; afficherCombat()">${carte}</div>`;
   });
@@ -188,12 +167,7 @@ function afficherCombat() {
 }
 
 function renderCombat(u) {
-  return `
-    <img src="${u.image}">
-    <strong>${u.nom}</strong>
-    <div>${u.pv} / ${u.pvMax} PV</div>
-    ${renderBarrePV(u)}
-  `;
+  return `<img src="${u.image}"><strong>${u.nom}</strong>${renderBarrePV(u)}`;
 }
 
 /* ========= ATTAQUE ========= */
@@ -207,40 +181,24 @@ function attaquer(type) {
   lancerAnimationDe();
 
   let log = "";
-  const ⚔️ = "⚔️";
-  const 🎯 = "🎯";
-  const ❌ = "❌";
-  const 🛡️ = "🛡️";
-  const 💥 = "💥";
-  const ❤️ = "❤️";
 
   for (let i = 1; i <= a.attaques; i++) {
     const jetTouche = d6();
-    const touche = jetTouche >= a[type];
-
-    log += `${⚔️} ${i} → ${🎯}${jetTouche} `;
-
-    if (!touche) {
-      log += `${❌}\n`;
+    if (jetTouche < a[type]) {
+      log += `⚔️ ${i} ❌ (${jetTouche})\n`;
       continue;
     }
 
     const jetSave = d6();
-    const sauvegarde = jetSave >= d.save;
-
-    log += `${🛡️}${jetSave} `;
-
-    if (sauvegarde) {
-      log += `✅\n`;
+    if (jetSave >= d.save) {
+      log += `⚔️ ${i} 🎯${jetTouche} 🛡️${jetSave} ✅\n`;
       continue;
     }
 
-    const degats =
+    const deg =
       Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-
-    d.pv = Math.max(0, d.pv - degats);
-
-    log += `${💥} -${degats}${❤️}\n`;
+    d.pv = Math.max(0, d.pv - deg);
+    log += `⚔️ ${i} 🎯${jetTouche} 💥 -${deg}❤️\n`;
   }
 
   resultat.innerText = log;
@@ -263,6 +221,11 @@ function rafraichirTout() {
 }
 
 /* ========= INIT ========= */
-const data = localStorage.getItem("unitesWarhammer");
-if (data) unites = JSON.parse(data);
+try {
+  const data = localStorage.getItem("unitesWarhammer");
+  if (data) unites = JSON.parse(data);
+} catch (e) {
+  console.error("Erreur chargement storage", e);
+  unites = [];
+}
 rafraichirTout();
