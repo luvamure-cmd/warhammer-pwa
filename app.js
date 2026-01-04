@@ -31,6 +31,43 @@ const IMAGE_DEFAUT =
 /* ===================== OUTILS ===================== */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
+/* ===================== DÉ UNIQUE ===================== */
+const de = document.createElement("img");
+de.src = "https://upload.wikimedia.org/wikipedia/commons/2/2c/Alea_1.png";
+de.id = "de-animation";
+document.body.appendChild(de);
+
+de.style.position = "fixed";
+de.style.top = "50%";
+de.style.left = "50%";
+de.style.width = "100px";
+de.style.height = "100px";
+de.style.transform = "translate(-50%, -50%)";
+de.style.display = "none";
+de.style.zIndex = "9999";
+de.style.pointerEvents = "none";
+
+const style = document.createElement("style");
+style.textContent = `
+@keyframes roll {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}`;
+document.head.appendChild(style);
+
+function lancerAnimationDe() {
+  return new Promise(resolve => {
+    de.style.display = "block";
+    de.style.animation = "roll 1s linear";
+
+    setTimeout(() => {
+      de.style.animation = "";
+      de.style.display = "none";
+      resolve();
+    }, 1000);
+  });
+}
+
 /* ===================== STORAGE ===================== */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
@@ -50,7 +87,10 @@ function renderBarrePV(u) {
 
 /* ===================== UNITÉS ===================== */
 function ajouterUnite() {
-  if (!nom.value || !pv.value) return alert("Nom et PV requis");
+  if (!nom.value || !pv.value) {
+    alert("Nom et PV requis");
+    return;
+  }
 
   const u = {
     nom: nom.value,
@@ -65,11 +105,13 @@ function ajouterUnite() {
     degMax: +degMax.value || 1
   };
 
-  uniteEnEdition !== null
-    ? (unites[uniteEnEdition] = u)
-    : unites.push(u);
+  if (uniteEnEdition !== null) {
+    unites[uniteEnEdition] = u;
+    uniteEnEdition = null;
+  } else {
+    unites.push(u);
+  }
 
-  uniteEnEdition = null;
   sauvegarder();
   rafraichirTout();
 }
@@ -97,7 +139,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ===================== AFFICHAGE UNITÉS ===================== */
+/* ===================== AFFICHAGES ===================== */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
@@ -112,7 +154,6 @@ function afficherUnites() {
   });
 }
 
-/* ===================== CHOIX COMBAT ===================== */
 function afficherChoixCombat() {
   listeAttaquants.innerHTML = "";
   listeDefenseurs.innerHTML = "";
@@ -122,6 +163,7 @@ function afficherChoixCombat() {
       <div class="carte-unite">
         <img src="${u.image}">
         <div class="nom-unite">${u.nom}</div>
+        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
       </div>
     `;
@@ -134,7 +176,6 @@ function afficherChoixCombat() {
   });
 }
 
-/* ===================== AFFICHAGE COMBAT ===================== */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -146,37 +187,10 @@ function renderCombat(u) {
   return `
     <img src="${u.image}">
     <div><strong>${u.nom}</strong></div>
+    <div>Attaques : ${u.attaques}</div>
     <div>${u.pv} / ${u.pvMax} PV</div>
     ${renderBarrePV(u)}
   `;
-}
-
-/* ===================== DÉ ANIMÉ ===================== */
-const de = document.createElement("div");
-de.textContent = "🎲";
-Object.assign(de.style, {
-  position: "fixed",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  fontSize: "90px",
-  display: "none",
-  zIndex: 9999,
-  pointerEvents: "none"
-});
-document.body.appendChild(de);
-
-function lancerAnimationDe() {
-  return new Promise(resolve => {
-    de.style.display = "block";
-    de.style.animation = "spin 1s linear";
-
-    setTimeout(() => {
-      de.style.display = "none";
-      de.style.animation = "";
-      resolve();
-    }, 1000);
-  });
 }
 
 /* ===================== COMBAT ===================== */
@@ -190,8 +204,7 @@ async function attaquer(type) {
 
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
-
-  let log = "";
+  let journal = "";
 
   for (let i = 1; i <= a.attaques && d.pv > 0; i++) {
     const jetTouche = d6();
@@ -203,27 +216,26 @@ async function attaquer(type) {
         const deg =
           Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv = Math.max(0, d.pv - deg);
-        log += `Attaque ${i} : touchée ✔️, sauvegarde ratée ❌ → ${deg} PV<br>`;
+        journal += `Attaque ${i} : touchée ✔️, sauvegarde ratée ❌ → ${deg} PV<br>`;
       } else {
-        log += `Attaque ${i} : touchée ✔️, sauvegarde réussie 🛡️<br>`;
+        journal += `Attaque ${i} : touchée ✔️, sauvegarde réussie 🛡️<br>`;
       }
     } else {
-      log += `Attaque ${i} : manquée ❌<br>`;
+      journal += `Attaque ${i} : manquée ❌<br>`;
     }
   }
 
   sauvegarder();
   rafraichirTout();
-  resultat.innerHTML = log || "Aucune attaque";
+  resultat.innerHTML = journal || "Aucune attaque";
+
   animationEnCours = false;
 }
 
-/* ===================== RESET ===================== */
 function resetCombat() {
-  unites.forEach(u => (u.pv = u.pvMax));
+  unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
   rafraichirTout();
-  resultat.innerText = "Combat réinitialisé";
 }
 
 /* ===================== GLOBAL ===================== */
