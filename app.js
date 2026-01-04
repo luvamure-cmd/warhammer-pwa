@@ -119,8 +119,8 @@ function afficherUnites() {
         <div class="nom-unite">${u.nom}</div>
         <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
-        <button style="margin-top:5px;width:90%;" onclick="copierUnite(${i})">Dupliquer</button>
-        <button style="margin-top:5px;width:90%;background:#a33;" onclick="chargerUnite(${i})">Modifier</button>
+        <button style="margin-top:5px;width:50%;" onclick="copierUnite(${i})">Dupliquer</button>
+        <button style="margin-top:5px;width:50%;background:#a33;" onclick="chargerUnite(${i})">Modifier</button>
       </div>
     `;
   });
@@ -243,3 +243,4 @@ titreFormulaire.addEventListener("click", () => {
   box.style.height = collapsed ? "40px" : "auto";
   box.style.overflow = collapsed ? "hidden" : "visible";
 });
+
