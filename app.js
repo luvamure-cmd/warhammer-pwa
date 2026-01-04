@@ -172,38 +172,35 @@ function attaquer(type) {
   if (d.pv <= 0) return;
 
   let journal = "";
-  const emojiAttaque = "⚔️";
-  const emojiTouche = "✅";
-  const emojiRate = "❌";
-  const emojiSave = "🛡️";
-  const emojiBlesse = "💥";
+  const ⚔️ = "⚔️";
+  const ✅ = "✅";
+  const ❌ = "❌";
+  const 🛡️ = "🛡️";
+  const 💥 = "💥";
 
   for (let i = 1; i <= a.attaques; i++) {
-    // Jet de touche indépendant
     const jetTouche = d6();
-    const touche = jetTouche > a[type];
-    let texteTouche = touche ? emojiTouche : emojiRate;
+    const touche = jetTouche >= a[type];
 
     let degats = 0;
-    let texteSave = "-";
+    let saveTexte = "-";
 
     if (touche) {
-      // Jet de sauvegarde indépendant
       const jetSave = d6();
-      const sauvegarde = jetSave > d.save;
-      texteSave = sauvegarde ? emojiSave : emojiBlesse;
+      const sauvegarde = jetSave >= d.save;
+
+      saveTexte = sauvegarde ? 🛡️ : 💥;
 
       if (!sauvegarde) {
-        degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-        d.pv -= degats;
-        d.pv = Math.max(0, d.pv);
+        degats =
+          Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+        d.pv = Math.max(0, d.pv - degats);
       }
 
-      // Journal détaillé
-      journal += `${emojiAttaque} ${i}: Jet touche ${jetTouche} vs ${a[type]} = ${texteTouche}, `
-              + `Jet sauvegarde ${jetSave} vs ${d.save} = ${texteSave}, PV perdus: ${degats} ${emojiBlesse}\n`;
+      journal += `${⚔️} ${i} | 🎯 ${jetTouche} ≥ ${a[type]} ${touche ? ✅ : ❌} | `
+              + `🛡️ ${jetSave} ≥ ${d.save} ${saveTexte} | ❤️ -${degats}\n`;
     } else {
-      journal += `${emojiAttaque} ${i}: Jet touche ${jetTouche} vs ${a[type]} = ${texteTouche}, PV perdus: 0\n`;
+      journal += `${⚔️} ${i} | 🎯 ${jetTouche} ≥ ${a[type]} ❌ | ❤️ -0\n`;
     }
   }
 
@@ -211,11 +208,10 @@ function attaquer(type) {
   sauvegarder();
   rafraichirTout();
 
-  // Vibration + son
   if (navigator.vibrate) navigator.vibrate(200);
-  const audio = new Audio("https://freesound.org/data/previews/341/341695_62476-lq.mp3");
-  audio.play();
+  new Audio("https://freesound.org/data/previews/341/341695_62476-lq.mp3").play();
 }
+
 
 
 function resetCombat() {
@@ -239,4 +235,5 @@ toggleForm.addEventListener("click", () => {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
 
