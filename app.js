@@ -1,7 +1,4 @@
-/* ========= DOM ========= */
-const toggleUnites = document.getElementById("toggleUnites");
-const formUnites = document.getElementById("formUnites");
-
+/* ================== DOM ================== */
 const nom = document.getElementById("nom");
 const pv = document.getElementById("pv");
 const image = document.getElementById("image");
@@ -21,7 +18,7 @@ const zoneDefenseur = document.getElementById("zoneDefenseur");
 
 const resultat = document.getElementById("resultat");
 
-/* ========= ÉTAT ========= */
+/* ================== ÉTAT ================== */
 let unites = [];
 let uniteEnEdition = null;
 let indexAttaquant = null;
@@ -30,22 +27,27 @@ let indexDefenseur = null;
 const IMAGE_DEFAUT =
   "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
-/* ========= UTILITAIRES ========= */
+/* ================== OUTILS ================== */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
 
-/* ========= STORAGE ========= */
+/* ================== STORAGE ================== */
 function sauvegarder() {
   localStorage.setItem("unitesWarhammer", JSON.stringify(unites));
 }
 
-/* ========= BARRE PV ========= */
+/* ================== BARRE PV ================== */
 function renderBarrePV(u) {
   const pct = Math.max(0, (u.pv / u.pvMax) * 100);
   const color = pct > 50 ? "#3fa93f" : pct > 25 ? "#e0b000" : "#c0392b";
-  return `<div class="barre-vie"><div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div></div>`;
+
+  return `
+    <div class="barre-vie">
+      <div class="barre-vie-interne" style="width:${pct}%;background:${color}"></div>
+    </div>
+  `;
 }
 
-/* ========= FORMULAIRE UNITÉ ========= */
+/* ================== UNITÉS ================== */
 function ajouterUnite() {
   if (!nom.value || !pv.value) return alert("Nom et PV requis");
 
@@ -71,17 +73,10 @@ function ajouterUnite() {
   rafraichirTout();
 }
 
-function supprimerUnite() {
-  if (uniteEnEdition === null) return;
-  unites.splice(uniteEnEdition, 1);
-  uniteEnEdition = null;
-  sauvegarder();
-  rafraichirTout();
-}
-
 function chargerUnite(i) {
   const u = unites[i];
   uniteEnEdition = i;
+
   nom.value = u.nom;
   image.value = u.image;
   pv.value = u.pvMax;
@@ -93,7 +88,7 @@ function chargerUnite(i) {
   degMax.value = u.degMax;
 }
 
-/* ========= AFFICHAGE UNITÉS ========= */
+/* ================== AFFICHAGE ================== */
 function afficherUnites() {
   listeUnites.innerHTML = "";
   unites.forEach((u, i) => {
@@ -117,33 +112,17 @@ function afficherChoixCombat() {
       <div class="carte-unite">
         <img src="${u.image}">
         <div class="nom-unite">${u.nom}</div>
-        <div class="pv-texte">${u.pv} / ${u.pvMax} PV</div>
         ${renderBarrePV(u)}
       </div>
     `;
 
-    const clickAtt = () => {
-      indexAttaquant = i;
-      afficherCombat();
-    };
-    const clickDef = () => {
-      indexDefenseur = i;
-      afficherCombat();
-    };
-
-    const divAtt = document.createElement("div");
-    divAtt.innerHTML = carte;
-    divAtt.onclick = clickAtt;
-    listeAttaquants.appendChild(divAtt);
-
-    const divDef = document.createElement("div");
-    divDef.innerHTML = carte;
-    divDef.onclick = clickDef;
-    listeDefenseurs.appendChild(divDef);
+    listeAttaquants.innerHTML +=
+      `<div onclick="indexAttaquant=${i};afficherCombat()">${carte}</div>`;
+    listeDefenseurs.innerHTML +=
+      `<div onclick="indexDefenseur=${i};afficherCombat()">${carte}</div>`;
   });
 }
 
-/* ========= COMBAT ========= */
 function afficherCombat() {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -154,83 +133,108 @@ function afficherCombat() {
 function renderCombat(u) {
   return `
     <img src="${u.image}">
-    <div><strong>${u.nom}</strong></div>
-    <div>Attaques : ${u.attaques}</div>
+    <strong>${u.nom}</strong>
     <div>${u.pv} / ${u.pvMax} PV</div>
     ${renderBarrePV(u)}
   `;
 }
 
+/* ================== ANIMATION DÉ ================== */
+const de = document.createElement("div");
+de.id = "deAnimation";
+de.style.position = "fixed";
+de.style.top = "50%";
+de.style.left = "50%";
+de.style.transform = "translate(-50%, -50%)";
+de.style.fontSize = "80px";
+de.style.background = "#222";
+de.style.color = "white";
+de.style.padding = "20px";
+de.style.borderRadius = "12px";
+de.style.display = "none";
+de.style.zIndex = "9999";
+document.body.appendChild(de);
+
+function lancerDe(callback) {
+  let temps = 0;
+  de.style.display = "block";
+
+  const interval = setInterval(() => {
+    de.textContent = d6();
+    temps += 100;
+    if (temps >= 800) {
+      clearInterval(interval);
+      const resultat = d6();
+      de.textContent = resultat;
+      setTimeout(() => {
+        de.style.display = "none";
+        callback(resultat);
+      }, 400);
+    }
+  }, 100);
+}
+
+/* ================== COMBAT ================== */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
-  if (d.pv <= 0) return;
 
   let journal = "";
-  const nbAttaques = a.attaques;
+  let attaqueCourante = 1;
 
-  for (let i = 1; i <= nbAttaques; i++) {
-    const jetTouche = d6();
-    const touche = type === "cac" ? a.cac : a.dist;
-    if (jetTouche > touche) {
-      // touche réussie, jet de sauvegarde
-      const jetSave = d6();
-      if (jetSave > d.save) {
-        const deg = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-        d.pv -= deg;
-        d.pv = Math.max(0, d.pv);
-        journal += `Attaque ${i} : Touchée, sauvegarde ratée ! ${d.nom} perd ${deg} PV<br>`;
-      } else {
-        journal += `Attaque ${i} : Touchée, sauvegarde réussie ! ${d.nom} ne perd pas de PV<br>`;
-      }
-    } else {
-      journal += `Attaque ${i} : Manquée<br>`;
+  function attaqueSuivante() {
+    if (attaqueCourante > a.attaques || d.pv <= 0) {
+      sauvegarder();
+      rafraichirTout();
+      resultat.innerHTML = journal;
+      return;
     }
+
+    lancerDe((jetTouche) => {
+      const seuilTouche = type === "cac" ? a.cac : a.dist;
+
+      if (jetTouche > seuilTouche) {
+        lancerDe((jetSave) => {
+          if (jetSave > d.save) {
+            const deg =
+              Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+            d.pv = Math.max(0, d.pv - deg);
+            journal += `Attaque ${attaqueCourante} : Touchée ✔️, sauvegarde ratée ❌ → ${deg} PV perdus<br>`;
+          } else {
+            journal += `Attaque ${attaqueCourante} : Touchée ✔️, sauvegarde réussie 🛡️<br>`;
+          }
+          attaqueCourante++;
+          attaqueSuivante();
+        });
+      } else {
+        journal += `Attaque ${attaqueCourante} : Manquée ❌<br>`;
+        attaqueCourante++;
+        attaqueSuivante();
+      }
+    });
   }
 
-  sauvegarder();
-  rafraichirTout();
-  resultat.innerHTML = journal;
+  attaqueSuivante();
 }
 
+/* ================== RESET ================== */
 function resetCombat() {
-  unites.forEach(u => u.pv = u.pvMax);
+  unites.forEach(u => (u.pv = u.pvMax));
   sauvegarder();
   rafraichirTout();
-  resultat.innerHTML = "Combat réinitialisé";
+  resultat.innerText = "Combat réinitialisé";
 }
 
-/* ========= GLOBAL ========= */
+/* ================== GLOBAL ================== */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
   afficherCombat();
 }
 
-/* ========= FORMULAIRE RÉTRACTABLE ========= */
-if (toggleUnites && formUnites) {
-  // init ouvert
-  formUnites.style.display = "block";
-  toggleUnites.addEventListener("click", toggleFormUnites);
-  toggleUnites.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    toggleFormUnites();
-  });
-}
-
-function toggleFormUnites() {
-  if (formUnites.style.display === "none") {
-    formUnites.style.display = "block";
-    toggleUnites.textContent = "➕ Ajouter / Modifier une unité ▼";
-  } else {
-    formUnites.style.display = "none";
-    toggleUnites.textContent = "➕ Ajouter / Modifier une unité ►";
-  }
-}
-
-/* ========= INIT ========= */
+/* ================== INIT ================== */
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
