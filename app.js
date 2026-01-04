@@ -166,6 +166,7 @@ function renderCombat(u) {
 /* ========= COMBAT AVEC EMOJIS ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
+
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
@@ -178,35 +179,44 @@ function attaquer(type) {
   const emojiBlesse = "💥";
 
   for (let i = 1; i <= a.attaques; i++) {
-    const toucheJet = d6();
-    const touche = toucheJet > a[type];
-    let degats = 0;
+    // Jet de touche indépendant
+    const jetTouche = d6();
+    const touche = jetTouche > a[type];
     let texteTouche = touche ? emojiTouche : emojiRate;
+
+    let degats = 0;
     let texteSave = "-";
 
     if (touche) {
-      const saveJet = d6();
-      const sauvegarde = saveJet > d.save;
+      // Jet de sauvegarde indépendant
+      const jetSave = d6();
+      const sauvegarde = jetSave > d.save;
       texteSave = sauvegarde ? emojiSave : emojiBlesse;
+
       if (!sauvegarde) {
         degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= degats;
         d.pv = Math.max(0, d.pv);
       }
-    }
 
-    journal += `${emojiAttaque} ${texteTouche}, sauvegarde : ${texteSave}, PV perdus : ${degats} ${emojiBlesse}\n`;
+      // Journal détaillé
+      journal += `${emojiAttaque} ${i}: Jet touche ${jetTouche} vs ${a[type]} = ${texteTouche}, `
+              + `Jet sauvegarde ${jetSave} vs ${d.save} = ${texteSave}, PV perdus: ${degats} ${emojiBlesse}\n`;
+    } else {
+      journal += `${emojiAttaque} ${i}: Jet touche ${jetTouche} vs ${a[type]} = ${texteTouche}, PV perdus: 0\n`;
+    }
   }
 
   resultat.innerText = journal;
   sauvegarder();
   rafraichirTout();
 
-  // Vibration et son
+  // Vibration + son
   if (navigator.vibrate) navigator.vibrate(200);
   const audio = new Audio("https://freesound.org/data/previews/341/341695_62476-lq.mp3");
   audio.play();
 }
+
 
 function resetCombat() {
   unites.forEach(u => (u.pv = u.pvMax));
@@ -229,3 +239,4 @@ toggleForm.addEventListener("click", () => {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
