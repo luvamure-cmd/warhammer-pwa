@@ -144,9 +144,15 @@ button.combat-btn {
 
 /* ===== BOUTONS DANS CARTES UNITÉS ===== */
 .carte-unite button {
-  margin-top: 6px;
-  padding: 6px;
-  font-size: 12px;
+  display: block;
+  margin: 6px auto 0 auto;
+  width: 90%;
+  padding: 8px;
+  font-size: 14px;
   background: #555;
+  color: #fff;
+  border: none;
   border-radius: 6px;
 }
+
+
