@@ -21,7 +21,6 @@ const resultat = document.getElementById("resultat");
 /* ========= COLLAPSIBLE ========= */
 const toggleForm = document.getElementById("toggleForm");
 const formUnite = document.getElementById("formUnite");
-
 toggleForm.addEventListener("click", () => {
   if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
     formUnite.style.maxHeight = "0";
@@ -158,7 +157,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT ========= */
+/* ========= COMBAT AVEC ANIMATION DÉ UNIQUE ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -166,15 +165,52 @@ function attaquer(type) {
   const d = unites[indexDefenseur];
   if (d.pv <= 0) return;
 
+  // Création ou réutilisation de l'image du dé
+  let diceImg = document.getElementById("diceAnim");
+  if (!diceImg) {
+    diceImg = document.createElement("img");
+    diceImg.id = "diceAnim";
+    diceImg.style.width = "80px";
+    diceImg.style.height = "80px";
+    diceImg.style.display = "block";
+    diceImg.style.margin = "10px auto";
+    document.body.insertBefore(diceImg, resultat);
+  }
+
+  // Animation simple : tourner le dé pendant 1s
+  let start = Date.now();
+  const duration = 1000; // 1s
+  const anim = setInterval(() => {
+    const elapsed = Date.now() - start;
+    if (elapsed >= duration) {
+      clearInterval(anim);
+      const diceValue = d6();
+      diceImg.src = `https://upload.wikimedia.org/wikipedia/commons/${["","1","2","3","4","5","6"].map(n=>`f/f5/Dice-${n}.svg`)[diceValue]}`; // remplace par lien de dé 1-6 correct si besoin
+      effectuerAttaques(a, d, type, diceValue);
+      return;
+    }
+    // Rotation aléatoire
+    const randFace = Math.floor(Math.random() * 6) + 1;
+    diceImg.src = `https://upload.wikimedia.org/wikipedia/commons/f/f5/Dice-${randFace}.svg`;
+  }, 50);
+
+  // vibration + son
+  if (navigator.vibrate) navigator.vibrate(300);
+  const audio = new Audio("https://www.soundjay.com/button/beep-07.mp3");
+  audio.play();
+}
+
+// Exécute toutes les attaques après animation du dé
+function effectuerAttaques(a, d, type, diceValue) {
   let journal = "";
   for (let i = 1; i <= a.attaques; i++) {
-    const toucheJet = d6();
-    let touche = toucheJet > a[type]; // touche si dé > caractéristique
+    const toucheJet = diceValue; // on utilise le même pour toutes les attaques
+    let touche = toucheJet > a[type]; 
     let sauvegarde = false;
     let degats = 0;
     if (touche) {
       const saveJet = d6();
-      sauvegarde = saveJet > d.save; // échoue si dé > save
+      sauvegarde = saveJet > d.save;
       if (!sauvegarde) {
         degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= degats;
@@ -183,18 +219,12 @@ function attaquer(type) {
     }
     journal += `Attaque ${i} : ${touche ? "touchée" : "ratée"}, jet de sauvegarde ${touche ? (sauvegarde ? "réussi" : "raté") : "-"}, perte PV : ${degats}\n`;
   }
-
   resultat.innerText = journal;
   sauvegarder();
   rafraichirTout();
-
-  // vibration mobile
-  if (navigator.vibrate) navigator.vibrate(200);
-  // son
-  const audio = new Audio("https://www.soundjay.com/button/beep-07.mp3");
-  audio.play();
 }
 
+/* ========= RESET ========= */
 function resetCombat() {
   unites.forEach(u => u.pv = u.pvMax);
   sauvegarder();
@@ -212,4 +242,3 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
-
