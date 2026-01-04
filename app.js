@@ -15,7 +15,6 @@ const listeDefenseurs = document.getElementById("listeDefenseurs");
 
 const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
-
 const resultat = document.getElementById("resultat");
 
 /* ========= ÉTAT ========= */
@@ -85,11 +84,15 @@ function chargerUnite(i) {
   dist.value = u.dist;
   degMin.value = u.degMin;
   degMax.value = u.degMax;
+
+  // Ouvre automatiquement le formulaire si fermé
+  const form = document.getElementById("formUnite");
+  form.style.maxHeight = form.scrollHeight + "px";
 }
 
 /* ========= DUPLICATION ========= */
 function dupliquerUnite(i) {
-  const u = {...unites[i]}; // copie profonde
+  const u = {...unites[i]};
   let compteur = 1;
   let nomUnique = u.nom;
 
@@ -123,8 +126,6 @@ function afficherUnites() {
     btnModifier.onclick = (e) => {
       e.stopPropagation();
       chargerUnite(i);
-      const form = document.getElementById("formUnite");
-      form.style.maxHeight = form.scrollHeight + "px";
     };
     carte.appendChild(btnModifier);
 
@@ -137,9 +138,7 @@ function afficherUnites() {
     };
     carte.appendChild(btnDupliquer);
 
-    // Clic sur la carte pour charger l’unité
     carte.onclick = () => chargerUnite(i);
-
     listeUnites.appendChild(carte);
   });
 }
@@ -177,7 +176,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT AVEC EMOJIS ET JETS INDÉPENDANTS ========= */
+/* ========= COMBAT AVEC EMOJIS (jets indépendants) ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -193,18 +192,18 @@ function attaquer(type) {
   const emojiBlesse = "💥";
 
   for (let i = 1; i <= a.attaques; i++) {
-    // Jet de touche indépendant pour chaque attaque
-    const toucheJet = d6();
-    let touche = toucheJet > a[type];
-    let sauvegarde = false;
-    let degats = 0;
+    // Jet de touche indépendant
+    const jetTouche = d6();
+    let touche = jetTouche > a[type];
     let texteTouche = touche ? emojiTouche : emojiRate;
+
+    let degats = 0;
     let texteSave = "-";
 
     if (touche) {
-      // Jet de sauvegarde indépendant pour chaque attaque
-      const saveJet = d6();
-      sauvegarde = saveJet > d.save;
+      // Jet de sauvegarde indépendant
+      const jetSave = d6();
+      const sauvegarde = jetSave > d.save;
       texteSave = sauvegarde ? emojiSave : emojiBlesse;
 
       if (!sauvegarde) {
@@ -234,7 +233,7 @@ function resetCombat() {
   rafraichirTout();
 }
 
-/* ========= RAFRAICHIR TOUT ========= */
+/* ========= GLOBAL ========= */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
@@ -245,15 +244,3 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
-
-/* ========= COLLAPSIBLE FORMULAIRE ========= */
-const toggleForm = document.getElementById("toggleForm");
-const formUnite = document.getElementById("formUnite");
-
-toggleForm.onclick = () => {
-  if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
-    formUnite.style.maxHeight = "0";
-  } else {
-    formUnite.style.maxHeight = formUnite.scrollHeight + "px";
-  }
-};
