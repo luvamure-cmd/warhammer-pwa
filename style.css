@@ -117,3 +117,9 @@ button {
 }
 
 
+#animationDe {
+  color: #fff;
+  text-shadow: 0 0 8px #000;
+  transition: transform 0.1s;
+}
+
