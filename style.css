@@ -4,6 +4,7 @@ body {
   color: #eee;
   font-family: Arial, sans-serif;
   padding: 15px;
+  margin: 0;
 }
 
 .box {
@@ -19,6 +20,7 @@ input, select, button {
   padding: 10px;
   margin: 5px 0;
   font-size: 16px;
+  box-sizing: border-box;
 }
 
 button {
@@ -26,6 +28,7 @@ button {
   color: white;
   border: none;
   border-radius: 6px;
+  cursor: pointer;
 }
 
 /* Boutons combat plus grands pour mobile */
@@ -50,7 +53,6 @@ button.combat-btn {
   border-radius: 10px;
   text-align: center;
   cursor: pointer;
-  position: relative;
 }
 
 .carte-unite img {
@@ -89,6 +91,7 @@ button.combat-btn {
 .combat-ligne {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .zone-combat {
@@ -110,6 +113,7 @@ button.combat-btn {
   display: flex;
   gap: 15px;
   margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .choix-combat > div {
@@ -122,25 +126,13 @@ button.combat-btn {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  user-select: none;
 }
 
 .collapsible-content {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
-}
-
-/* ===== ANIMATION DÉ ===== */
-#de-animation {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  transform: translate(-50%, -50%);
-  display: none;
-  z-index: 9999;
-  border-radius: 12px;
 }
 
 /* ===== BOUTONS DANS CARTES UNITÉS ===== */
@@ -154,4 +146,5 @@ button.combat-btn {
   color: #fff;
   border: none;
   border-radius: 6px;
+  cursor: pointer;
 }
