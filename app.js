@@ -139,39 +139,27 @@ function renderCombat(u) {
   `;
 }
 
-/* ================== ANIMATION DÉ ================== */
+/* ================== ANIMATION DÉ UNIQUE ================== */
 const de = document.createElement("div");
-de.id = "deAnimation";
+de.innerHTML = "🎲";
 de.style.position = "fixed";
 de.style.top = "50%";
 de.style.left = "50%";
 de.style.transform = "translate(-50%, -50%)";
-de.style.fontSize = "80px";
-de.style.background = "#222";
-de.style.color = "white";
-de.style.padding = "20px";
-de.style.borderRadius = "12px";
+de.style.fontSize = "90px";
 de.style.display = "none";
 de.style.zIndex = "9999";
 document.body.appendChild(de);
 
-function lancerDe(callback) {
-  let temps = 0;
+function lancerAnimationDe(callback) {
   de.style.display = "block";
+  de.style.animation = "spin 1s linear";
 
-  const interval = setInterval(() => {
-    de.textContent = d6();
-    temps += 100;
-    if (temps >= 800) {
-      clearInterval(interval);
-      const resultat = d6();
-      de.textContent = resultat;
-      setTimeout(() => {
-        de.style.display = "none";
-        callback(resultat);
-      }, 400);
-    }
-  }, 100);
+  setTimeout(() => {
+    de.style.display = "none";
+    de.style.animation = "";
+    callback();
+  }, 1000);
 }
 
 /* ================== COMBAT ================== */
@@ -181,42 +169,32 @@ function attaquer(type) {
   const a = unites[indexAttaquant];
   const d = unites[indexDefenseur];
 
-  let journal = "";
-  let attaqueCourante = 1;
+  lancerAnimationDe(() => {
+    let journal = "";
 
-  function attaqueSuivante() {
-    if (attaqueCourante > a.attaques || d.pv <= 0) {
-      sauvegarder();
-      rafraichirTout();
-      resultat.innerHTML = journal;
-      return;
-    }
-
-    lancerDe((jetTouche) => {
+    for (let i = 1; i <= a.attaques && d.pv > 0; i++) {
+      const jetTouche = d6();
       const seuilTouche = type === "cac" ? a.cac : a.dist;
 
       if (jetTouche > seuilTouche) {
-        lancerDe((jetSave) => {
-          if (jetSave > d.save) {
-            const deg =
-              Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
-            d.pv = Math.max(0, d.pv - deg);
-            journal += `Attaque ${attaqueCourante} : Touchée ✔️, sauvegarde ratée ❌ → ${deg} PV perdus<br>`;
-          } else {
-            journal += `Attaque ${attaqueCourante} : Touchée ✔️, sauvegarde réussie 🛡️<br>`;
-          }
-          attaqueCourante++;
-          attaqueSuivante();
-        });
+        const jetSave = d6();
+        if (jetSave > d.save) {
+          const deg =
+            Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
+          d.pv = Math.max(0, d.pv - deg);
+          journal += `Attaque ${i} : touchée ✔️, sauvegarde ratée ❌ → ${deg} PV<br>`;
+        } else {
+          journal += `Attaque ${i} : touchée ✔️, sauvegarde réussie 🛡️<br>`;
+        }
       } else {
-        journal += `Attaque ${attaqueCourante} : Manquée ❌<br>`;
-        attaqueCourante++;
-        attaqueSuivante();
+        journal += `Attaque ${i} : manquée ❌<br>`;
       }
-    });
-  }
+    }
 
-  attaqueSuivante();
+    sauvegarder();
+    rafraichirTout();
+    resultat.innerHTML = journal || "Aucune attaque effectuée";
+  });
 }
 
 /* ================== RESET ================== */
