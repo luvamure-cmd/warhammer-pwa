@@ -1,85 +1,207 @@
+/* ===== BODY & BOX ===== */
 body {
-  background:#111;
-  color:#eee;
-  font-family:Arial;
-  padding:10px;
+  background: #111;
+  color: #eee;
+  font-family: Arial, sans-serif;
+  padding: 15px;
 }
 
 .box {
-  border:1px solid #333;
-  border-radius:10px;
-  padding:10px;
-  margin-bottom:12px;
+  border: 1px solid #333;
+  padding: 10px;
+  margin-top: 12px;
+  border-radius: 8px;
 }
 
-.toggle-btn {
-  width:100%;
-  font-size:20px;
-  padding:14px;
+/* ===== INPUTS & BOUTONS ===== */
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  font-size: 16px;
 }
 
-.form {
-  display:none;
+button {
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 6px;
 }
 
-.form input, button {
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  font-size:16px;
+/* Boutons combat plus grands pour mobile */
+button.combat-btn {
+  font-size: 22px;
+  padding: 16px 10px;
+  border-radius: 12px;
+  margin: 8px 0;
+  width: 100%;
 }
 
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:10px;
+/* ===== UNITÉS ===== */
+.liste-unites {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
 }
 
-.card {
-  background:#1a1a1a;
-  padding:8px;
-  border-radius:10px;
-  text-align:center;
+/* ===== SECTION AJOUT / MODIFICATION UNITÉ ===== */
+#formUnite {
+  max-height: 500px; /* peut être plus grand si nécessaire */
+  overflow-y: auto;  /* scroll vertical si beaucoup d'unités */
+  padding-right: 5px; /* pour scrollbar */
 }
 
-.card img {
-  width:100%;
-  height:120px;
-  object-fit:cover;
-  border-radius:8px;
+/* ===== LISTE D’UNITÉS DANS COMBAT ===== */
+#listeAttaquants, #listeDefenseurs {
+  max-height: 300px;  /* ajuste selon la taille de l’écran */
+  overflow-y: auto;
 }
 
-.card button {
-  margin-top:4px;
+.carte-unite {
+  background: #1a1a1a;
+  padding: 8px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
 }
 
-.zones {
-  display:flex;
-  gap:10px;
+.carte-unite img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
 }
 
-.zone {
-  flex:1;
-  border:1px dashed #555;
-  padding:10px;
-  min-height:120px;
+.nom-unite {
+  font-weight: bold;
+  margin-top: 6px;
 }
 
-.big {
-  font-size:24px;
-  padding:18px;
-  margin-top:8px;
+.pv-texte {
+  font-size: 12px;
+  margin: 4px 0;
 }
 
-.danger {
-  background:#a33;
+/* ===== BARRE PV ===== */
+.barre-vie {
+  width: 100%;
+  height: 8px;
+  background: #333;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
-#de {
-  position:fixed;
-  width:100px;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  display:none;
+.barre-vie-interne {
+  height: 100%;
+  transition: width 0.3s ease;
 }
+
+/* ===== COMBAT ===== */
+.combat-ligne {
+  display: flex;
+  gap: 10px;
+}
+
+.zone-combat {
+  flex: 1;
+  text-align: center;
+  min-height: 300px;  /* plus haut pour voir les unités */
+}
+
+.zone-combat img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #666;
+}
+
+/* ===== CHOIX COMBAT ===== */
+.choix-combat {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.choix-combat > div {
+  flex: 1;
+}
+
+/* ===== COLLAPSIBLE ===== */
+.collapsible {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.collapsible-content.active {
+  max-height: 2000px; /* suffisant pour le formulaire */
+}
+
+/* ===== ANIMATION DÉ ===== */
+#de-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+#de-animation.active {
+  animation: dice-roll 0.9s ease-out forwards;
+}
+
+@keyframes dice-roll {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.1) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+
+/* ===== BOUTONS DANS CARTES UNITÉS ===== */
+.carte-unite button {
+  display: block;
+  margin: 6px auto 0 auto;
+  width: 90%;
+  padding: 8px;
+  font-size: 14px;
+  background: #555;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+}
+
+.carte-unite button {
+  display: block;
+  width: 90%;
+  margin: 6px auto 0;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+.carte-unite button:last-child {
+  background: #a33;
+}
+
+
