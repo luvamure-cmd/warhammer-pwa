@@ -15,29 +15,19 @@ const listeDefenseurs = document.getElementById("listeDefenseurs");
 
 const zoneAttaquant = document.getElementById("zoneAttaquant");
 const zoneDefenseur = document.getElementById("zoneDefenseur");
-const resultat = document.getElementById("resultat");
 
-const toggleFormBtn = document.getElementById("toggleForm");
-const formUnite = document.getElementById("formUnite");
+const resultat = document.getElementById("resultat");
 
 /* ========= ÉTAT ========= */
 let unites = [];
 let uniteEnEdition = null;
 let indexAttaquant = null;
 let indexDefenseur = null;
+
 const IMAGE_DEFAUT = "https://stores.warhammer.com/wp-content/uploads/2020/11/4jtAGbPWOxDXUHN2.png";
 
 /* ========= OUTILS ========= */
 const d6 = () => Math.floor(Math.random() * 6) + 1;
-
-/* ========= COLLAPSIBLE FORM ========= */
-toggleFormBtn.addEventListener("click", () => {
-  if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
-    formUnite.style.maxHeight = "0px";
-  } else {
-    formUnite.style.maxHeight = formUnite.scrollHeight + "px";
-  }
-});
 
 /* ========= STORAGE ========= */
 function sauvegarder() {
@@ -99,9 +89,10 @@ function chargerUnite(i) {
 
 /* ========= DUPLICATION ========= */
 function dupliquerUnite(i) {
-  const u = {...unites[i]};
+  const u = {...unites[i]}; // copie profonde
   let compteur = 1;
   let nomUnique = u.nom;
+
   while (unites.some(x => x.nom === nomUnique)) {
     compteur++;
     nomUnique = `${u.nom} ${compteur}`;
@@ -126,15 +117,18 @@ function afficherUnites() {
       ${renderBarrePV(u)}
     `;
 
+    // Bouton Modifier
     const btnModifier = document.createElement("button");
     btnModifier.textContent = "✏️ Modifier";
     btnModifier.onclick = (e) => {
       e.stopPropagation();
       chargerUnite(i);
-      formUnite.style.maxHeight = formUnite.scrollHeight + "px";
+      const form = document.getElementById("formUnite");
+      form.style.maxHeight = form.scrollHeight + "px";
     };
     carte.appendChild(btnModifier);
 
+    // Bouton Dupliquer
     const btnDupliquer = document.createElement("button");
     btnDupliquer.textContent = "📄 Dupliquer";
     btnDupliquer.onclick = (e) => {
@@ -143,6 +137,7 @@ function afficherUnites() {
     };
     carte.appendChild(btnDupliquer);
 
+    // Clic sur la carte pour charger l’unité
     carte.onclick = () => chargerUnite(i);
 
     listeUnites.appendChild(carte);
@@ -182,7 +177,7 @@ function renderCombat(u) {
   `;
 }
 
-/* ========= COMBAT AVEC EMOJIS ========= */
+/* ========= COMBAT AVEC EMOJIS ET JETS INDÉPENDANTS ========= */
 function attaquer(type) {
   if (indexAttaquant === null || indexDefenseur === null) return;
 
@@ -197,19 +192,21 @@ function attaquer(type) {
   const emojiSave = "🛡️";
   const emojiBlesse = "💥";
 
-  const diceValue = d6(); // Tir unique pour toutes les attaques
-
   for (let i = 1; i <= a.attaques; i++) {
-    let touche = diceValue > a[type];
+    // Jet de touche indépendant pour chaque attaque
+    const toucheJet = d6();
+    let touche = toucheJet > a[type];
     let sauvegarde = false;
     let degats = 0;
     let texteTouche = touche ? emojiTouche : emojiRate;
     let texteSave = "-";
 
     if (touche) {
+      // Jet de sauvegarde indépendant pour chaque attaque
       const saveJet = d6();
       sauvegarde = saveJet > d.save;
       texteSave = sauvegarde ? emojiSave : emojiBlesse;
+
       if (!sauvegarde) {
         degats = Math.floor(Math.random() * (a.degMax - a.degMin + 1)) + a.degMin;
         d.pv -= degats;
@@ -217,25 +214,27 @@ function attaquer(type) {
       }
     }
 
-    journal += `${emojiAttaque} Attaque ${i} : ${texteTouche}, sauvegarde : ${texteSave}, PV perdus : ${degats} ${emojiBlesse}\n`;
+    journal += `${emojiAttaque} ${texteTouche}, sauvegarde : ${texteSave}, PV perdus : ${degats} ${emojiBlesse}\n`;
   }
 
   resultat.innerText = journal;
   sauvegarder();
   rafraichirTout();
 
+  // Vibration et son
   if (navigator.vibrate) navigator.vibrate(200);
   const audio = new Audio("https://freesound.org/data/previews/341/341695_62476-lq.mp3");
   audio.play();
 }
 
+/* ========= RESET COMBAT ========= */
 function resetCombat() {
   unites.forEach(u => (u.pv = u.pvMax));
   sauvegarder();
   rafraichirTout();
 }
 
-/* ========= GLOBAL ========= */
+/* ========= RAFRAICHIR TOUT ========= */
 function rafraichirTout() {
   afficherUnites();
   afficherChoixCombat();
@@ -246,3 +245,15 @@ function rafraichirTout() {
 const data = localStorage.getItem("unitesWarhammer");
 if (data) unites = JSON.parse(data);
 rafraichirTout();
+
+/* ========= COLLAPSIBLE FORMULAIRE ========= */
+const toggleForm = document.getElementById("toggleForm");
+const formUnite = document.getElementById("formUnite");
+
+toggleForm.onclick = () => {
+  if (formUnite.style.maxHeight && formUnite.style.maxHeight !== "0px") {
+    formUnite.style.maxHeight = "0";
+  } else {
+    formUnite.style.maxHeight = formUnite.scrollHeight + "px";
+  }
+};
