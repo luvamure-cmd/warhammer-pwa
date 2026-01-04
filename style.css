@@ -44,6 +44,19 @@ button.combat-btn {
   gap: 10px;
 }
 
+/* ===== SECTION AJOUT / MODIFICATION UNITÉ ===== */
+#formUnite {
+  max-height: 500px; /* peut être plus grand si nécessaire */
+  overflow-y: auto;  /* scroll vertical si beaucoup d'unités */
+  padding-right: 5px; /* pour scrollbar */
+}
+
+/* ===== LISTE D’UNITÉS DANS COMBAT ===== */
+#listeAttaquants, #listeDefenseurs {
+  max-height: 300px;  /* ajuste selon la taille de l’écran */
+  overflow-y: auto;
+}
+
 .carte-unite {
   background: #1a1a1a;
   padding: 8px;
@@ -93,7 +106,7 @@ button.combat-btn {
 .zone-combat {
   flex: 1;
   text-align: center;
-  min-height: 260px;
+  min-height: 300px;  /* plus haut pour voir les unités */
 }
 
 .zone-combat img {
@@ -158,3 +171,4 @@ button.combat-btn {
   border: none;
   border-radius: 6px;
 }
+
